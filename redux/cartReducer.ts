@@ -5,12 +5,26 @@ import type { AppState, AppThunk } from './store'
 export interface CartState {
     cartItemId: string
     userId: string
+    product: IProduct
+    color:IColor
+    size:ISize
+    amount: number
+}
+export interface IProduct{
     productId: string
     productTitle: string
     productDetail: string
     productPrice: string
     productImage: string
-    amount: number
+}
+export interface IColor{
+    colorId: string
+    colorValue: string
+    colorName: string
+}
+export interface ISize{
+    sizeId: string
+    sizeName: string
 }
 export interface changeAmount{
     cartItemId:string

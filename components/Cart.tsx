@@ -10,6 +10,7 @@ import Link from "next/dist/client/link";
 import { useRouter } from "next/router";
 const APIBase = "http://localhost:5000";
 
+
 export default function Cart({ show, onHide, user, setAmount }) {
   const cart = useSelector(getCart);
   const dispatch = useDispatch();

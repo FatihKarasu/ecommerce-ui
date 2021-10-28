@@ -1,11 +1,11 @@
 import React from "react";
 
 export default function Product({ item, changeItemAmount, deleteCartItem }) {
+  const product=item.product;
   return (
     <div className="product">
       <div>
-        <h6>{item.productTitle}</h6>
-        <small>{item.productDetail}</small>
+        <h6>{product.productTitle}</h6>
         <div className="price">
           <div className="d-flex">
             <div className="amount">
@@ -23,9 +23,9 @@ export default function Product({ item, changeItemAmount, deleteCartItem }) {
                 }
               ></i>
             </div>
-            x {item.productPrice} ₺
+            x {product.productPrice} ₺
           </div>
-          <div> {item.amount * item.productPrice} ₺</div>
+          <div> {item.amount * product.productPrice} ₺</div>
         </div>
       </div>
       <div className="button-container">

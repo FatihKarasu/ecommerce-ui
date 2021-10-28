@@ -22,49 +22,49 @@ const initialItems = [
 ];
 const prices = [
   {
-    title: "0 TL - 500 TL",
+    title: "0 TL - 50 TL",
     min: 0,
-    max: 500,
+    max: 50,
   },
   {
-    title: "500 TL - 1000 TL",
-    min: 500,
-    max: 1000,
+    title: "50 TL - 100 TL",
+    min: 50,
+    max: 100,
   },
   {
-    title: "1000 TL - 1500 TL",
-    min: 1000,
-    max: 1500,
+    title: "100 TL - 150 TL",
+    min: 100,
+    max: 150,
   },
   {
-    title: "1500 TL - 2000 TL",
-    min: 1500,
-    max: 2000,
+    title: "150 TL - 200 TL",
+    min: 150,
+    max: 200,
   },
   {
-    title: "2000 TL - 2500 TL",
-    min: 2000,
-    max: 2500,
+    title: "200 TL - 250 TL",
+    min: 200,
+    max: 250,
   },
   {
-    title: "2500 TL - 3000 TL",
-    min: 2500,
-    max: 3000,
+    title: "250 TL - 300 TL",
+    min: 250,
+    max: 300,
   },
   {
-    title: "3000 TL - 3500 TL",
-    min: 3000,
-    max: 3500,
+    title: "300 TL - 350 TL",
+    min: 300,
+    max: 350,
   },
   {
-    title: "3500 TL - 4000 TL",
-    min: 3500,
-    max: 4000,
+    title: "350 TL - 400 TL",
+    min: 350,
+    max: 400,
   },
   {
-    title: "4000 TL and above",
-    min: 4000,
-    max: 100000,
+    title: "400 TL and above",
+    min: 400,
+    max: 10000,
   },
 ];
 
@@ -317,7 +317,9 @@ export default function index({ products, _filters }) {
                   ))
                 : null}
             </div>
-            <button onClick={() => loadMore()}>Load More</button>
+            <div className="d-flex justify-content-center">
+            <Button type="button"  onClick={() => loadMore()} >Load More</Button>
+            </div>
           </div>
         </div>
       </div>

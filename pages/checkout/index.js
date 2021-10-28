@@ -54,7 +54,7 @@ export default function checkout() {
     if (cart.length !== 0) {
       let total = 0;
       cart.forEach((item) => {
-        total += item.amount * item.productPrice;
+        total += item.amount * item.product.productPrice;
       });
       setTotalPrice(total);
     }
