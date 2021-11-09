@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Modal, Button, Form, Alert, Spinner } from "react-bootstrap";
 import { useDispatch, useSelector } from "react-redux";
-import { getUser, logout } from "../redux/userReducer";
-import axios from "axios";
+import { getUser, logout } from "../../redux/userReducer";
 import { useRouter } from "next/router";
-
-const APIBase = "http://localhost:5000";
+import { editUser,getUserById } from "../../data/user";
 
 const initialState = {
   userName: "",
@@ -32,9 +30,9 @@ export default function UserEdit() {
       headers: { Authorization: `Bearer ${user.token}` },
     };
     try {
-      const response = await axios.get(`${APIBase}/user/${user.id}`, config);
+      const response = await getUserById(user.id, config);
 
-      setEditValues({ ...editValues, ...response.data });
+      setEditValues({ ...editValues, ...response });
     } catch (error) {
       if (error.response.status == 401) {
         dispatch(logout());
@@ -61,13 +59,9 @@ export default function UserEdit() {
     formData.append("Email", editValues.email);
     formData.append("Password", editValues.password);
     try {
-      const response = await axios.post(
-        `${APIBase}/user/edit`,
-        formData,
-        config
-      );
-      setMessage(response.data.message)
-      setVariant(response.data.status)
+      const response = await editUser(formData, config);
+      setMessage(response.message);
+      setVariant(response.status);
     } catch (error) {
       if (error.response.status == 401) {
         dispatch(logout());
@@ -96,7 +90,10 @@ export default function UserEdit() {
   }
   return (
     <div>
-      <Form>
+      <div className="profile-header">
+        <h4>Profile</h4>
+      </div>
+      <Form className="mt-3">
         <Form.Group className="mb-3" controlId="formText">
           <Form.Label>User Name</Form.Label>
           <Form.Control
@@ -148,7 +145,7 @@ export default function UserEdit() {
         </Form.Group>
       </Form>
       {message}
-      <Button variant="primary" type="button" onClick={()=>saveChanges()}>
+      <Button variant="primary" type="button" onClick={() => saveChanges()}>
         Save
       </Button>
     </div>

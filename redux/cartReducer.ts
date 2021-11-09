@@ -45,7 +45,7 @@ export const cartReducer = createSlice({
         addToCart: (state, action: PayloadAction<CartState>) => {
             let add = true;
             state.forEach(element => {
-                if (element.cartItemId == action.payload.cartItemId) {
+                if (element.cartItemId == action.payload.cartItemId && element.color.colorId===action.payload.color.colorId && element.size.sizeId===action.payload.size.sizeId) {
                     element.amount = action.payload.amount;
                     add = false;
                 }

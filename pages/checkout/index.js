@@ -1,22 +1,28 @@
 import React, { useEffect, useState } from "react";
 import Head from "next/head";
 import { Button } from "react-bootstrap";
+import Link from "next/link";
 
 import { useRouter } from "next/router";
 import { useSelector, useDispatch } from "react-redux";
 import { getCart, deleteItem, changeAmount } from "../../redux/cartReducer";
-import axios from "axios";
 import { getUser, logout } from "../../redux/userReducer";
 import Product from "../../components/Checkout/Product";
-import Address from "../../components//Checkout/Address";
-import Payment from "../../components//Checkout/Payment";
-const APIBase = "http://localhost:5000";
+import Address from "../../components/Checkout/Address";
+import Payment from "../../components/Checkout/Payment";
+import { deleteCartItem, changeItemAmount } from "../../data/cart";
+import {
+  editAddress,
+  getAddresses,
+  addNewAddress,
+  deleteAddress,
+} from "../../data/address";
 
 const initialValues = {
   deliveryAddress: "1",
   billingAddress: "1",
   name: "",
-  cardNumber: null,
+  cardNumber: "",
   month: "",
   year: "",
   cvv: null,
@@ -42,7 +48,7 @@ export default function checkout() {
   const dispatch = useDispatch();
 
   useEffect(() => {
-    getAddresses();
+    getAddresses(user, setAddresses, dispatch, logout, router);
   }, []);
   useEffect(() => {
     if (user.id === "") {
@@ -60,92 +66,16 @@ export default function checkout() {
     }
   }, [cart]);
 
-  const changeItemAmount = async (cartItemId, amount) => {
-    if (amount < 1) {
-      return;
-    }
-    const config = {
-      headers: { Authorization: `Bearer ${user.token}` },
-    };
-    const formData = new FormData();
-    formData.append("CartItemId", cartItemId);
-    formData.append("Amount", amount);
-    try {
-      const response = await axios.post(
-        `${APIBase}/cart/changeamount`,
-        formData,
-        config
-      );
-      const obj = { cartItemId: cartItemId, amount: amount };
-      dispatch(changeAmount(obj));
-    } catch (error) {}
+  const changeitemamount = async (cartItemId, amount) => {
+    changeItemAmount(cartItemId, amount, user, dispatch, changeAmount);
   };
 
-  const deleteCartItem = async (cartItemId) => {
-    const config = {
-      headers: { Authorization: `Bearer ${user.token}` },
-    };
-    try {
-      const response = await axios.delete(
-        `${APIBase}/cart/delete/${cartItemId}`,
-        config
-      );
-      dispatch(deleteItem(cartItemId));
-    } catch (error) {
-      if (error.response.status == 401) {
-        dispatch(logout());
-      }
-    }
+  const deletecartitem = async (cartItemId) => {
+    deleteCartItem(cartItemId, user, dispatch, deleteItem, logout, null);
   };
 
-  const getAddresses = async () => {
-    const config = {
-      headers: { Authorization: `Bearer ${user.token}` },
-    };
-    try {
-      const response = await axios.get(
-        `${APIBase}/address/user/${user.id}`,
-        config
-      );
-
-      setAddresses(response.data);
-    } catch (error) {
-      if (error.response.status == 401) {
-        dispatch(logout());
-        router.push("/");
-      }
-    }
-  };
-
-  const editAddress = async (address) => {
-    const formData = new FormData();
-    formData.append("AddressId", address.addressId);
-    formData.append("UserId", user.id);
-    formData.append("Name", address.name);
-    formData.append("Detail", address.detail);
-    formData.append("District", address.district);
-    formData.append("City", address.city);
-    formData.append("Neighbourhood", address.neighbourhood);
-    formData.append("PhoneNumber", address.phoneNumber);
-    formData.append("Title", address.title);
-
-    const config = {
-      headers: { Authorization: `Bearer ${user.token}` },
-    };
-
-    try {
-      const response = await axios.post(
-        `${APIBase}/address/edit`,
-        formData,
-        config
-      );
-      changeAddress(address);
-    } catch (error) {
-      if (error.response.status == 401) {
-        dispatch(logout());
-        router.push("/");
-      }
-    }
+  const editaddress = async (address) => {
+    editAddress(address, user, changeAddress, dispatch, logout, router);
   };
   const changeAddress = (address) => {
     const temp = [...addresses];
@@ -159,29 +89,16 @@ export default function checkout() {
     setAddresses(temp);
   };
 
-  const deleteAddress = async (addressId) => {
-    const config = {
-      headers: { Authorization: `Bearer ${user.token}` },
-    };
-    try {
-      const response = await axios.delete(
-        `${APIBase}/address/delete/${addressId}`,
-        config
-      );
-
-      var filtered = addresses.filter(
-        (address) => address.addressId !== addressId
-      );
-      setAddresses(filtered);
-    } catch (error) {
-      if (error.response.status == 401) {
-        dispatch(logout());
-        router.push("/");
-      }
-      if (error.response.status == 500) {
-        console.log(error);
-      }
-    }
+  const deleteaddress = async (addressId) => {
+    deleteAddress(
+      addressId,
+      user,
+      setAddresses,
+      addresses,
+      dispatch,
+      logout,
+      router
+    );
   };
 
   const order = () => {
@@ -196,8 +113,10 @@ export default function checkout() {
     if (name === "month") {
       const obj = { ...feedback, monthIsInvalid: false, monthFeedback: "" };
       setFeedback(obj);
-      if (paymentData.year === "" || parseInt(paymentData.year) >= parseInt(year)) {
-        console.log(value);
+      if (
+        paymentData.year === "" ||
+        parseInt(paymentData.year) >= parseInt(year)
+      ) {
         if (parseInt(value) > 1 && parseInt(value) < 10 && value[0] !== "0") {
           value = `0${value}`;
         }
@@ -222,10 +141,10 @@ export default function checkout() {
       }
     } else if (name === "year") {
       setFeedback(initialValues);
-      console.log(typeof(value))
-      console.log(typeof(year))
-      console.log(value<year)
-      if (parseInt(value) < parseInt(year) || parseInt(value) > parseInt(maxYear)) {
+      if (
+        parseInt(value) < parseInt(year) ||
+        parseInt(value) > parseInt(maxYear)
+      ) {
         const obj = {
           ...feedback,
           yearIsInvalid: true,
@@ -233,7 +152,11 @@ export default function checkout() {
         };
         setFeedback(obj);
       }
-      if (parseInt(value) === parseInt(year) && paymentData.month!=="" && parseInt(paymentData.month)<parseInt(month)) {
+      if (
+        parseInt(value) === parseInt(year) &&
+        paymentData.month !== "" &&
+        parseInt(paymentData.month) < parseInt(month)
+      ) {
         const obj = {
           yearIsInvalid: false,
           yearFeedback: "",
@@ -243,13 +166,29 @@ export default function checkout() {
         setFeedback(obj);
       }
     }
-
+    if (name === "cardNumber") {
+      if (value.length === 5) {
+        if (value[value.length - 1] !== " ") {
+          value=value.substring(0,value.length-1)+" "+value[value.length-1]
+        }
+      }
+      if (value.length === 10) {
+        if (value[value.length - 1] !== " ") {
+          value=value.substring(0,value.length-1)+" "+value[value.length-1]
+        }
+      }
+      if (value.length === 15) {
+        if (value[value.length - 1] !== " ") {
+          value=value.substring(0,value.length-1)+" "+value[value.length-1]
+        }
+      }
+    }
     setPaymentData({
       ...paymentData,
       [name]: value,
     });
   };
-
+//.replace(/\s/g, ''); remove spaces
   const handleAddress = (type, id) => {
     setPaymentData({
       ...paymentData,
@@ -266,6 +205,19 @@ export default function checkout() {
 
       {user.id !== "" ? (
         <div className="row">
+          <div className="breadcrumb">
+          <nav aria-label="breadcrumb">
+            <ol>
+              <li>
+                <Link href="/">Home</Link>
+              </li>
+              <li>/</li>
+              <li aria-current="page" className="active">
+                Checkout
+              </li>
+            </ol>
+          </nav>
+        </div>
           <div className="col-9 checkout">
             <h3>Delivery Address</h3>
             <div className="address-container">
@@ -275,8 +227,8 @@ export default function checkout() {
                   address={address}
                   selected={paymentData.deliveryAddress === address.addressId}
                   type="deliveryAddress"
-                  deleteAddress={() => deleteAddress(address.addressId)}
-                  editAddress={editAddress}
+                  deleteAddress={() => deleteaddress(address.addressId)}
+                  editAddress={editaddress}
                   changeAddress={handleAddress}
                 />
               ))}
@@ -289,8 +241,8 @@ export default function checkout() {
                   address={address}
                   selected={paymentData.billingAddress === address.addressId}
                   type="billingAddress"
-                  deleteAddress={() => deleteAddress(address.addressId)}
-                  editAddress={editAddress}
+                  deleteAddress={() => deleteaddress(address.addressId)}
+                  editAddress={editaddress}
                   changeAddress={handleAddress}
                 />
               ))}
@@ -315,8 +267,8 @@ export default function checkout() {
                     <Product
                       key={item.cartItemId}
                       item={item}
-                      changeItemAmount={changeItemAmount}
-                      deleteCartItem={deleteCartItem}
+                      changeItemAmount={changeitemamount}
+                      deleteCartItem={deletecartitem}
                     />
                   ))}
 

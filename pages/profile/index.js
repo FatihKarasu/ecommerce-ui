@@ -1,23 +1,28 @@
+import Link from "next/link";
 import Head from "next/head";
 import React, { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { useSelector, useDispatch } from "react-redux";
 import { getUser, logout } from "../../redux/userReducer";
-import { Col, Nav, Row, Tab,Button } from "react-bootstrap";
-import EditUser from "../../components/UserEdit";
-import Address from "../../components/Address";
-import Order from "../../components/Order";
-import AddressModal from "../../components/Profile/AddressModal"
-import axios from "axios";
-
-const APIBase = "http://localhost:5000";
+import { Col, Nav, Row, Tab, Button } from "react-bootstrap";
+import EditUser from "../../components/Profile/UserEdit";
+import Addresses from "../../components/Profile/Addresses";
+import Orders from "../../components/Profile/Orders";
+import AddressModal from "../../components/Profile/AddressModal";
+import {
+  getAddresses,
+  deleteAddress,
+  addNewAddress,
+  editAddress,
+} from "../../data/address";
+import { getOrdersByUserId } from "../../data/order";
 
 export default function index() {
   const router = useRouter();
   const user = useSelector(getUser);
   const [addresses, setAddresses] = useState([]);
   const [orders, setOrders] = useState([]);
-  const [modal, setModal] = useState(false)
+  const [modal, setModal] = useState(false);
   const dispatch = useDispatch();
   useEffect(() => {
     if (user.id === "") {
@@ -25,35 +30,14 @@ export default function index() {
     }
   }, [user]);
 
-  const getAddresses = async () => {
-    const config = {
-      headers: { Authorization: `Bearer ${user.token}` },
-    };
-    try {
-      const response = await axios.get(
-        `${APIBase}/address/user/${user.id}`,
-        config
-      );
-
-      setAddresses(response.data);
-    } catch (error) {
-      if (error.response.status == 401) {
-        dispatch(logout());
-        router.push("/");
-      }
-    }
-  };
   const getOrders = async () => {
     const config = {
       headers: { Authorization: `Bearer ${user.token}` },
     };
     try {
-      const response = await axios.get(
-        `${APIBase}/order/user/${user.id}`,
-        config
-      );
+      const response = await getOrdersByUserId(user.id, config);
 
-      setOrders(response.data);
+      setOrders(response);
     } catch (error) {
       if (error.response.status == 401) {
         dispatch(logout());
@@ -61,112 +45,42 @@ export default function index() {
       }
     }
   };
+
   useEffect(() => {
     if (user.id !== "") {
-      getAddresses();
+      getAddresses(user, setAddresses, dispatch, logout, router);
       getOrders();
     }
   }, []);
 
-  const deleteAddress = async (addressId) => {
-    const config = {
-      headers: { Authorization: `Bearer ${user.token}` },
-    };
-    try {
-      const response = await axios.delete(
-        `${APIBase}/address/delete/${addressId}`,
-        config
-      );
-
-      var filtered = addresses.filter(
-        (address) => address.addressId !== addressId
-      );
-      setAddresses(filtered);
-    } catch (error) {
-      if (error.response.status == 401) {
-        dispatch(logout());
-        router.push("/");
-      }
-      if (error.response.status == 500) {
-        console.log(error);
-      }
-    }
+  const deleteaddress = async (addressId) => {
+    deleteAddress(addressId, user, setAddresses,addresses, dispatch, logout, router);
   };
-  
 
   const addAddress = async (address) => {
-    
-    const formData = new FormData();
-    formData.append("UserId", user.id);
-    formData.append("Name", address.name);
-    formData.append("Detail", address.detail);
-    formData.append("District", address.district);
-    formData.append("City", address.city);
-    formData.append("Neighbourhood", address.neighbourhood);
-    formData.append("PhoneNumber", address.phoneNumber);
-    formData.append("Title", address.title);
-
-    const config = {
-      headers: { Authorization: `Bearer ${user.token}` },
-    };
-
-   try {
-    const response = await axios.post(
-        `${APIBase}/address`,
-        formData,
-        config
-      );
-
-      setAddresses([...addresses, response.data]);
-   } catch (error) {
-    if (error.response.status == 401) {
-        dispatch(logout());
-        router.push("/");
-      }
-   }
+    addNewAddress(
+      address,
+      user,
+      setAddresses,
+      addresses,
+      dispatch,
+      logout,
+      router
+    );
   };
 
-  const editAddress = async (address) => {
-    const formData = new FormData();
-    formData.append("AddressId", address.addressId)
-    formData.append("UserId", user.id);
-    formData.append("Name", address.name);
-    formData.append("Detail", address.detail);
-    formData.append("District", address.district);
-    formData.append("City", address.city);
-    formData.append("Neighbourhood", address.neighbourhood);
-    formData.append("PhoneNumber", address.phoneNumber);
-    formData.append("Title", address.title);
-
-    const config = {
-      headers: { Authorization: `Bearer ${user.token}` },
-    };
-
-    try {
-      const response = await axios.post(
-        `${APIBase}/address/edit`,
-        formData,
-        config
-      );
-      changeAddress(address);
-      
-    } catch (error) {
-      if (error.response.status == 401) {
-        dispatch(logout());
-        router.push("/");
-      }
-    }
+  const editaddress = async (address) => {
+    editAddress(address, user, changeAddress, dispatch, logout, router);
   };
   const changeAddress = (address) => {
     const temp = [...addresses];
-    
+
     for (let index = 0; index < temp.length; index++) {
-      if(temp[index].addressId===address.addressId)
-      {
-        temp[index]=address
+      if (temp[index].addressId === address.addressId) {
+        temp[index] = address;
       }
     }
-    
+
     setAddresses(temp);
   };
   return (
@@ -177,6 +91,19 @@ export default function index() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <div className="container profile">
+        <div className="breadcrumb">
+          <nav aria-label="breadcrumb">
+            <ol>
+              <li>
+                <Link href="/">Home</Link>
+              </li>
+              <li>/</li>
+              <li aria-current="page" className="active">
+                Profile
+              </li>
+            </ol>
+          </nav>
+        </div>
         <Tab.Container id="left-tabs-example" defaultActiveKey="profile">
           <Row>
             <Col sm={2}>
@@ -198,33 +125,23 @@ export default function index() {
                   <EditUser />
                 </Tab.Pane>
                 <Tab.Pane eventKey="orders">
-                  {user.id !== ""
-                    ? orders.map((order) => (
-                        <Order key={order.orderId} order={order} />
-                      ))
-                    : null}
+                  <Orders user={user} orders={orders} />
                 </Tab.Pane>
                 <Tab.Pane eventKey="addresses">
-                  <div className="profile-header">
-                    <h4>Addresses</h4>
-                    <Button onClick={()=>setModal(true)}>Add New Address</Button>
-                  </div>
-                  <div className="address-container">
-                    {user.id !== ""
-                      ? addresses.map((address) => (
-                          <Address
-                            key={address.addressId}
-                            address={address}
-                            deleteAddress={() =>
-                              deleteAddress(address.addressId)
-                            }
-                            editAddress={editAddress}
-                          />
-                        ))
-                      : null}
-                  </div>
+                  <Addresses
+                    user={user}
+                    setModal={setModal}
+                    addresses={addresses}
+                    deleteAddress={deleteaddress}
+                    editAddress={editaddress}
+                  />
 
-                  <AddressModal show={modal} onHide={()=>setModal(false)} address={null} func={addAddress}/>
+                  <AddressModal
+                    show={modal}
+                    onHide={() => setModal(false)}
+                    address={null}
+                    func={addAddress}
+                  />
                 </Tab.Pane>
               </Tab.Content>
             </Col>

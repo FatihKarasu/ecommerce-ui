@@ -3,9 +3,8 @@ import { Modal, Button, Form, Alert, Spinner } from "react-bootstrap";
 import { useDispatch } from "react-redux";
 import { login } from "../redux/userReducer";
 import { populateCart } from "../redux/cartReducer";
-import axios from "axios";
-
-const APIBase = "http://localhost:5000";
+import { getCartByUserId } from "../data/cart";
+import { logIn, register } from "../data/user";
 
 const initialLoginValues = {
   email: "",
@@ -42,7 +41,8 @@ export default function Login({ show, onHide }) {
     setVariant("danger");
   };
 
-  const performLogin = async () => {
+  const performLogin = async (e) => {
+    e.preventDefault();
     if (loginValues.email === "" || loginValues.password === "") {
       setMessage("Please Enter Your Email and Password.");
       return;
@@ -58,28 +58,27 @@ export default function Login({ show, onHide }) {
       },
     };
 
-    const response = await axios.post(
-      `${APIBase}/user/login`,
-      formData,
-      config
-    );
-   
-    setMessage(response.data.message);
-    setVariant(response.data.status);
-    if(response.data.status==="success")
-    {
-      const cart = await axios.get(`${APIBase}/cart/user/${response.data.userId}`, config);
+    const response = await logIn(formData, config);
+
+    setMessage(response.message);
+    setVariant(response.status);
+    if (response.status === "success") {
+      const config = {
+        headers: { Authorization: `Bearer ${response.token}` },
+      };
+      const cart = await getCartByUserId(response.userId, config);
+
       setTimeout(() => {
-        const user = { id: response.data.userId, token: response.data.token };
+        const user = { id: response.userId, token: response.token };
         dispatch(login(user));
-        dispatch(populateCart(cart.data))
+        dispatch(populateCart(cart));
         onHide();
       }, 2000);
     }
-    
   };
 
-  const performSignUp = async () => {
+  const performSignUp = async (e) => {
+    e.preventDefault();
     if (signUpValues.userName === "") {
       setMessage("Please Enter Your User Name.");
       return;
@@ -115,15 +114,14 @@ export default function Login({ show, onHide }) {
       },
     };
 
-    const response = await axios.post(
-      `${APIBase}/user/register`,
-      formData,
-      config
-    );
+    const response = await register(formData, config);
 
-    setMessage(response.data.message);
-    setVariant(response.data.status);
+    setMessage(response.message);
+    setVariant(response.status);
     setTimeout(() => {
+      const user = { id: response.userId, token: response.token };
+      dispatch(login(user));
+      dispatch(populateCart([]));
       onHide();
     }, 2000);
   };
@@ -163,7 +161,7 @@ export default function Login({ show, onHide }) {
       </Modal.Header>
       <Modal.Body>
         {type === "login" ? (
-          <Form>
+          <Form onSubmit={(e) => performLogin(e)}>
             <Form.Group className="mb-3" controlId="formEmail">
               <Form.Label>Email address</Form.Label>
               <Form.Control
@@ -196,9 +194,31 @@ export default function Login({ show, onHide }) {
                 Sign Up
               </p>
             </div>
+            {message === "" ? null : (
+              <div className="text-center">
+                <Alert variant={variant}>
+                  {message}{" "}
+                  {variant === "success" ? (
+                    <Spinner animation="border" variant="success" size="sm" />
+                  ) : null}
+                </Alert>
+              </div>
+            )}
+            <div className="button-container">
+              <Button
+                variant="primary"
+                type="submit"
+                onClick={(e) => performLogin(e)}
+              >
+                Login
+              </Button>
+              <Button variant="danger" type="button" onClick={onHide}>
+                Cancel
+              </Button>
+            </div>
           </Form>
         ) : (
-          <Form>
+          <Form onSubmit={(e) => performSignUp(e)}>
             <Form.Group className="mb-3" controlId="formText">
               <Form.Label>User Name</Form.Label>
               <Form.Control
@@ -251,41 +271,31 @@ export default function Login({ show, onHide }) {
                 Log In
               </p>
             </div>
+            {message === "" ? null : (
+              <div className="text-center">
+                <Alert variant={variant}>
+                  {message}{" "}
+                  {variant === "success" ? (
+                    <Spinner animation="border" variant="success" size="sm" />
+                  ) : null}
+                </Alert>
+              </div>
+            )}
+            <div className="button-container">
+              <Button
+                variant="primary"
+                type="submit"
+                onClick={(e) => performSignUp(e)}
+              >
+                Sign Up
+              </Button>
+              <Button variant="danger" type="button" onClick={onHide}>
+                Cancel
+              </Button>
+            </div>
           </Form>
         )}
       </Modal.Body>
-      {message === "" ? null : (
-        <div className="text-center">
-          <Alert variant={variant}>
-            {message}{" "}
-            {variant === "success" ? (
-              <Spinner animation="border" variant="success" size="sm" />
-            ) : null}
-          </Alert>
-        </div>
-      )}
-      <Modal.Footer>
-        {type === "login" ? (
-          <Button
-            variant="primary"
-            type="submit"
-            onClick={() => performLogin()}
-          >
-            Login
-          </Button>
-        ) : (
-          <Button
-            variant="primary"
-            type="submit"
-            onClick={() => performSignUp()}
-          >
-            Sign Up
-          </Button>
-        )}
-        <Button variant="danger" type="button" onClick={onHide}>
-          Cancel
-        </Button>
-      </Modal.Footer>
     </Modal>
   );
 }

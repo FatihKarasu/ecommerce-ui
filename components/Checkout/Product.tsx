@@ -1,32 +1,25 @@
 import React from "react";
 
 export default function Product({ item, changeItemAmount, deleteCartItem }) {
-  const product=item.product;
+  const product = item.product;
   return (
     <div className="product">
-      <div>
-        <h6>{product.productTitle}</h6>
-        <div className="price">
-          <div className="d-flex">
-            <div className="amount">
-              <i
-                className="fas fa-minus"
-                onClick={() =>
-                  changeItemAmount(item.cartItemId, item.amount - 1)
-                }
-              ></i>
-              <div>{item.amount}</div>
-              <i
-                className="fas fa-plus"
-                onClick={() =>
-                  changeItemAmount(item.cartItemId, item.amount + 1)
-                }
-              ></i>
-            </div>
-            x {product.productPrice} ₺
-          </div>
-          <div> {item.amount * product.productPrice} ₺</div>
+      <div className="title">{product.productTitle}</div>
+      <div className="attr">
+        {item.color.colorName + " - " + item.size.sizeName.toUpperCase()}
+      </div>
+      <div className="price">
+        <div className="d-flex align-items-center">
+          <div className="item-price">{product.productPrice} TL</div>x
+          <input
+            type="number"
+            defaultValue={item.amount}
+            onFocus={(e)=>e.target.select()}
+            onBlur={(e)=>e.target.value=item.amount}
+            onChange={(e) => changeItemAmount(item.cartItemId, e.target.value)}
+          />
         </div>
+        <div className="total"> {item.amount * product.productPrice} ₺</div>
       </div>
       <div className="button-container">
         <i

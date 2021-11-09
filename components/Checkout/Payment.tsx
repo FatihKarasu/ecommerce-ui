@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Col, Form, Row } from "react-bootstrap";
 
 export default function Payment({
@@ -7,7 +7,18 @@ export default function Payment({
   validated,
   feedback,
 }) {
-    console.log(feedback)
+  const [icon, setIcon] = useState("");
+  useEffect(() => {
+    setIcon("");
+    if (values.cardNumber !== null) {
+      if (values.cardNumber[0] == 4) {
+        setIcon("/images/visa.png");
+      }
+      if (values.cardNumber[0] == 5) {
+        setIcon("/images/master-card.png");
+      }
+    }
+  }, [values.cardNumber]);
   return (
     <Row>
       <Col>
@@ -30,10 +41,11 @@ export default function Payment({
                 required
                 type="text"
                 placeholder="Card Number"
-                maxLength={16}
+                maxLength={19}
                 name="cardNumber"
-                defaultValue={values.cardNumber}
+                value={values.cardNumber}
                 onChange={(e) => handleOnChange(e)}
+                
               />
             </Form.Group>
           </Row>
@@ -88,7 +100,19 @@ export default function Payment({
           </Row>
         </Form>
       </Col>
-      <Col>Display</Col>
+      <Col>
+        <div className="card-template">
+          <div className="card">
+            <img className="card-chip" src="/images/chip.png" />
+            <div className="card-number">{values.cardNumber}</div>
+            <div className="card-title">{values.name}</div>
+            <div className="expiration-date">
+              {values.month}/{values.year}
+            </div>
+            <img className="card-network" src={icon} />
+          </div>
+        </div>
+      </Col>
     </Row>
   );
 }
