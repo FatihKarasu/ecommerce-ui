@@ -50,7 +50,7 @@ export default function Header() {
     router.push("/search?query=" + query);
   };
   return (
-    <header>
+    <header id="header">
       <div className="header">
         <div className="left">
           <div className="logo">

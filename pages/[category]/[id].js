@@ -1,24 +1,40 @@
 import Link from "next/link";
 import Head from "next/head";
 import { useDispatch } from "react-redux";
-import { Carousel, Button } from "react-bootstrap";
+import { Button, Tabs, Tab } from "react-bootstrap";
+import SlickCarousel from "../../components/SlickCarousel/SlickCarousel";
+import Carousel from "../../components/Product/Carousel/Carousel";
+import Rating from "../../components/Rating";
 import { addToCart } from "../../redux/cartReducer";
 import { useSelector } from "react-redux";
 import { getUser, logout } from "../../redux/userReducer";
 import { useState, useEffect } from "react";
-import { getProductById } from "../../data/products";
+import { getProductById, getProducts } from "../../data/products";
 import { addtocart } from "../../data/cart";
+import Reviews from "../../components/Product/Reviews";
+let func;
+let check = false;
+const images = ["../Images/1.jpg", "../Images/2.jpg", "../Images/3.jpg",];
 export default function product({ data, category }) {
-  const { product, colors, sizes } = { ...data };
+  const { product, colors, sizes, rating, reviewCount } = { ...data };
   const [selectedColor, setSelectedColor] = useState("");
   const [selectedSize, setSelectedSize] = useState("");
+  const [similarProducts, setSimilarProducts] = useState(null);
+  const [key, setKey] = useState("detail");
+  const [reviews, setReviews] = useState();
+  const [fetch, setFetch] = useState(false);
   const dispatch = useDispatch();
   const user = useSelector(getUser);
+ 
 
   useEffect(() => {
     setSelectedColor("");
     setSelectedSize("");
+    setReviews();
+    setKey("detail");
+    check = false;
   }, [data]);
+
   const addCart = async () => {
     if (user.id === "") {
       console.log("Please Login.");
@@ -58,6 +74,7 @@ export default function product({ data, category }) {
       }
     }
   };
+
   const getTitle = (title) => {
     title = (title[0].toUpperCase() + title.substring(1)).replace(/-/g, " ");
     for (let index = 0; index < title.length; index++) {
@@ -70,6 +87,61 @@ export default function product({ data, category }) {
     }
     return title;
   };
+
+  const ratingChanged = (newRating) => {
+    console.log(newRating);
+  };
+
+  const handleTabs = async (k) => {
+    if (k === "reviews") {
+      if (reviews === undefined) {
+        setFetch(true);
+      }
+      if (k !== key) {
+        window.scrollTo({
+          top:
+            document.getElementById("tabs").offsetTop -
+            document.getElementById("header").offsetHeight,
+          left: 0,
+          behavior: "smooth",
+        });
+      }
+    }
+    setKey(k);
+  };
+
+  const lazyLoadProducts = async () => {
+    if (
+      window.scrollY + window.outerHeight >=
+        document.getElementById("carousel").offsetTop &&
+      !check
+    ) {
+      check = true;
+      setSimilarProducts(
+        await getProducts(
+          `?categoryId=${product.subCategoryId}&start=0&end=16&orderBy=newest&`
+        )
+      );
+    }
+  };
+
+  useEffect(() => {
+    if (process.browser) {
+      func = lazyLoadProducts;
+      window.addEventListener("scroll", lazyLoadProducts);
+      check = false;
+    }
+    return () => {
+      window.removeEventListener("scroll", func);
+    };
+  }, [process.browser]);
+  useEffect(() => {
+    if (process.browser) {
+      if (similarProducts !== null) {
+        window.removeEventListener("scroll", func);
+      }
+    }
+  }, [similarProducts]);
   return (
     <>
       <Head>
@@ -96,30 +168,62 @@ export default function product({ data, category }) {
           </nav>
         </div>
         <div className="product-content">
-          <div className="product-images">
-            <img className="" src={product.productImage} alt="First slide" />
-            <img className="" src={product.productImage} alt="First slide" />
-            <img className="" src={product.productImage} alt="First slide" />
-            <img className="" src={product.productImage} alt="First slide" />
+          <div className="left">
+            
+              <Carousel items={images}/>
+            
+            <div id="tabs" className="tabs mt-5">
+              <Tabs
+                id="tab"
+                activeKey={key}
+                onSelect={(k) => handleTabs(k)}
+                className="mb-3"
+              >
+                <Tab eventKey="detail" title="Product Details">
+                  {product.productDetail}
+                </Tab>
+                <Tab eventKey="reviews" title="Reviews">
+                  {fetch === true && reviewCount !== 0 ? (
+                    <Reviews
+                      productId={product.productId}
+                      count={reviewCount}
+                    />
+                  ) : null}
+                </Tab>
+                <Tab eventKey="contact" title="Placeholder" disabled></Tab>
+              </Tabs>
+            </div>
           </div>
 
-          <div className="product-data">
-            <div className="title">{product.productTitle}</div>
+          <div className="product-data right">
+            <div>
+              <div className="title">{product.productTitle}</div>
+              <Rating
+                value={
+                  rating === null ? 0 : parseFloat(rating.replace(",", "."))
+                }
+              />
+              <small
+                onClick={() => {
+                  handleTabs("reviews");
+                }}
+              >{`${reviewCount} reviews`}</small>
+            </div>
 
-            {product.productSalePrice ? (
+            {product.productOldPrice ? (
               <div>
                 <div className="d-flex align-items-end ">
                   <div className="previous-price">
-                    {product.productPrice} TL
+                    {product.productOldPrice} TL
                   </div>
-                  <div className="price">{product.productSalePrice} TL</div>
+                  <div className="price">{product.productPrice} TL</div>
                 </div>
                 <div className="d-flex align-items-end mt-1">
                   <div className="discount-rate">
                     %
                     {Math.ceil(
                       100 -
-                        (product.productSalePrice * 100) / product.productPrice
+                        (product.productPrice * 100) / product.productOldPrice
                     )}
                   </div>
                   <small>Discount</small>
@@ -174,6 +278,9 @@ export default function product({ data, category }) {
               Add to Cart
             </Button>
           </div>
+        </div>
+        <div>
+          <SlickCarousel items={similarProducts} />
         </div>
       </div>
     </>

@@ -16,6 +16,7 @@ $filter-item-color: #56ab91;
 $color-4: #67b99a;
 $color-5: #78c6a3;
 $color-6: #99e2b4;
+
 html,
 body {
   padding: 0;
@@ -31,6 +32,7 @@ body {
     margin: 0;
   }
   background-color: $bg-color-1 !important;
+  scroll-behavior: unset !important;
 }
 main {
   @include layout;
@@ -49,7 +51,7 @@ header {
   top: 0;
   left: 0;
   right: 0;
-  z-index: 1;
+  z-index: 100;
 
   background-color: $header-color !important;
   .header {
@@ -253,6 +255,11 @@ header {
     }
   }
 }
+.footer {
+  @include layout;
+  margin-top: 2rem;
+  height: 50rem;
+}
 /*.banner {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -282,14 +289,90 @@ header {
     background-color: #036666;
   }
 }*/
-.banner {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 0.2rem;
-  margin: 1rem 5rem;
-  .item {
-    min-height: 10rem;
-    background-color: #036666;
+.home{
+  
+  .home-carousel{
+   
+    position: relative;
+    height: 650px;
+    margin-top: 1rem;
+    .slide{
+      display: block;
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      inset: 0;
+      object-fit: cover;
+      transition: 500ms  ease-in-out;
+      visibility: hidden;
+    }
+    .active{
+      visibility: visible;
+    }
+    .left{
+      left:0;
+      transform: translate(-1100px,0);
+    }
+    .right{
+      right:0;
+      transform: translate(1100px,0);
+    }
+    .blocker{
+      position: absolute;
+      background-color: $bg-color-1;
+      width: 100%;
+      height: 100%;
+    }
+    .carousel-button{
+      position: absolute;
+      z-index: 1;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 3rem;
+      opacity: .7;
+      cursor: pointer;
+      &:hover{
+        opacity: 1;
+      }
+    }
+    .prev{
+      left: 1rem;
+    }
+    .next{
+      right: 1rem;
+    }
+    .indicators{
+      position: absolute;
+      display: flex;
+      bottom: 2rem;
+      left:50%;
+      transform: translateX(-50%);
+      .indicator{
+        width: 1rem;
+        height: 1rem;
+        margin-left:.5rem ;
+        border-radius: 50%;
+        cursor: pointer;
+        background-color: white;
+        opacity: .3;
+        &:first-child{
+          margin: 0;
+        }
+      }
+      .active{
+        opacity: 1;
+      }
+    }
+  }
+  .banner {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.2rem;
+    margin: 1rem 5rem;
+    .item {
+      min-height: 10rem;
+      background-color: #036666;
+    }
   }
 }
 .breadcrumb {
@@ -416,7 +499,12 @@ header {
   padding: 1rem;
   border-radius: 0.5rem;
   width: 100%;
-
+  a {
+    all: unset;
+    &:hover{
+      all: unset;
+    }
+  }
   .product-card {
     height: 25rem;
     z-index: 0;
@@ -441,13 +529,13 @@ header {
       height: 15%;
       font-weight: 400;
       padding: 0.2rem 0.5rem;
-      .previous-price{
-        color:gray;
-        text-decoration:line-through;
+      .previous-price {
+        color: gray;
+        text-decoration: line-through;
         font-weight: 400;
         margin-right: 0.5rem;
       }
-      .discount-rate{
+      .discount-rate {
         font-size: 1.1rem;
         font-weight: 500;
         margin-right: 0.5rem;
@@ -545,15 +633,62 @@ header {
     display: flex;
     margin-top: 1rem;
     padding: 0 2rem;
-    .product-images {
-      width: 75%;
-      display: flex;
-      flex-wrap: wrap;
-      img {
-        width: 50%;
-        height: 35rem;
-        padding: 0 0.1rem 0.1rem 0;
-        object-fit: cover;
+    .left {
+      width: 65%;
+
+      .tabs {
+        min-height: 30rem;
+      }
+      .review-container {
+        margin-top: 1rem;
+        .dropdown {
+          width: 9rem;
+        
+          .dropdown-button {
+            display: flex;
+            padding: 0.5rem;
+            background-color: $button-color;
+            justify-content: space-between;
+            align-items: center;
+            i {
+              height: min-content;
+              &::before {
+                height: min-content;
+              }
+            }
+          }
+          .menu {
+            position: absolute;
+            width: 9rem;
+            background-color: $color-6;
+            .item {
+              border: 1px solid $color-4;
+              padding: 0.5rem;
+              margin-bottom: -1px;
+              cursor: pointer;
+              &:hover {
+                background-color: $button-color;
+              }
+            }
+            .selected {
+              background-color: $button-color;
+            }
+          }
+        }
+        .review {
+          padding: 1rem;
+          margin-top: 0.5rem;
+          border: 1px solid hsl(0, 0%, 85%);
+          border-radius: 1rem;
+        }
+        .load-button {
+          margin: 2rem auto;
+          padding: 0.5rem;
+          background-color: $button-color;
+          color: white;
+          border-radius: 0.2rem;
+          cursor: pointer;
+        }
       }
     }
 
@@ -564,19 +699,19 @@ header {
       position: sticky;
       top: 5rem;
       right: 0;
-      width: 25%;
+      width: 35%;
       height: 30rem;
       padding: 0 1rem;
       .title {
         font-size: 1.1rem;
       }
-      .previous-price{
+      .previous-price {
         font-weight: 500;
         text-decoration: line-through;
         color: gray;
         margin-right: 0.5rem;
       }
-      .discount-rate{
+      .discount-rate {
         font-size: 1.2rem;
         font-weight: 600;
         margin-right: 0.5rem;
@@ -855,13 +990,13 @@ header {
           width: 19.5rem;
           height: 12.5rem;
           background-color: $color-6;
-          .card-chip{
+          .card-chip {
             position: absolute;
             top: 0.8rem;
             left: 1rem;
             width: 2.5rem;
           }
-          .card-number{
+          .card-number {
             position: absolute;
             top: 5rem;
             left: 1rem;
@@ -869,7 +1004,7 @@ header {
             font-weight: 500;
             word-spacing: 1rem;
           }
-          .card-title{
+          .card-title {
             position: absolute;
             bottom: 1.5rem;
             left: 1rem;
@@ -877,14 +1012,14 @@ header {
             font-weight: 500;
             margin: 0;
           }
-          .expiration-date{
+          .expiration-date {
             position: absolute;
             bottom: 1.5rem;
             right: 1rem;
             font-size: 0.9rem;
             font-weight: 500;
           }
-          .card-network{
+          .card-network {
             position: absolute;
             top: 1rem;
             right: 1rem;
@@ -913,11 +1048,11 @@ header {
         &:last-child {
           border-bottom: 1px solid hsl(200, 100%, 95%);
         }
-        .title{
+        .title {
           font-size: 1.1rem;
           font-weight: 500;
         }
-        .attr{
+        .attr {
           font-size: 0.9rem;
           font-weight: 500;
         }
@@ -928,7 +1063,7 @@ header {
           .item-price {
             margin-right: 1rem;
           }
-          .total{
+          .total {
             font-size: 1.1rem;
             font-weight: 500;
           }
@@ -943,9 +1078,8 @@ header {
               border: 1px solid black;
             }
           }
-          
         }
-        
+
         .button-container {
           position: absolute;
           top: 0.25rem;
@@ -961,6 +1095,154 @@ header {
     }
   }
 }
+.carousel-container {
+  position: relative;
+  margin-top: 2rem;
+  .carousel-title {
+    font-size: 1.8rem;
+    font-weight: 500;
+    margin-bottom: 1rem;
+    padding-left: 0.5rem;
+  }
+  .carousel {
+    overflow-x: scroll;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    &::-webkit-scrollbar {
+      display: none;
+    }
+    .item-container {
+      display: inline-flex;
+
+      .item {
+        width: 16rem;
+        height: 25rem;
+        margin: 0 0.5rem;
+        img {
+          width: 100%;
+          height: 80%;
+          object-fit: cover;
+        }
+        .title {
+          font-weight: 500;
+        }
+        .discount-rate {
+          background-color: red;
+          margin-right: 0.5rem;
+          height: min-content;
+          width: min-content;
+          font-size: 1.1rem;
+          font-weight: 500;
+          padding: 0.3rem 0.5rem 0.3rem 0.3rem;
+          border-radius: 0.5rem;
+        }
+        .previous-price {
+          text-decoration: line-through;
+          margin-right: 0.5rem;
+          font-size: 1.1rem;
+          font-weight: 500;
+          color: gray;
+        }
+        .price {
+          font-size: 1.1rem;
+          font-weight: 500;
+        }
+        &:first-child {
+          margin-left: 0rem;
+        }
+        &:last-child {
+          margin-right: 0rem;
+        }
+      }
+    }
+  }
+  .indicator {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    font-size: 3rem;
+    z-index: 1;
+    color: white;
+    height: 20rem;
+  }
+  .left {
+    left: 1rem;
+  }
+  .right {
+    right: 1rem;
+  }
+}
+.carousel-a {
+  .carousel-a-image {
+    display: block;
+    width: 30rem;
+    height: 40rem;
+    object-fit: cover;
+    margin: 0 auto;
+  }
+}
+.slick-carousel-container {
+  margin-top: 1rem;
+  position: relative;
+  margin: 1rem 7rem;
+  padding: 0 3rem;
+  .slick-carousel {
+    overflow-x: scroll;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    &::-webkit-scrollbar {
+      display: none;
+    }
+    .item-container {
+      display: inline-flex;
+      .item {
+        border: 4px solid $bg-color-1;
+        margin-left: 12px;
+        border-radius: 0.2rem;
+        cursor: pointer;
+
+        &:first-child {
+          margin: 0;
+        }
+        img {
+          display: block;
+          width: 5rem;
+          height: 6rem;
+          object-fit: cover;
+        }
+      }
+      .selected {
+        border-color: black;
+      }
+    }
+  }
+  .indicator {
+    position: absolute;
+    display: grid;
+    place-items: center;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 2rem;
+    z-index: 1;
+    color: white;
+    border-radius: 0.5rem;
+    width: 3rem;
+    height: 3rem;
+    opacity: 0.5;
+    cursor: pointer;
+    background-color: black;
+    &:hover {
+      opacity: 1;
+    }
+  }
+  .prev {
+    left: 1rem;
+  }
+  .next {
+    right: 1rem;
+  }
+}
+
 .modal-text {
   text-align: center;
 

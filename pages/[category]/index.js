@@ -8,7 +8,8 @@ import ProductCardSkeleton from "../../components/Products/ProductCardSkeleton";
 import Filter from "../../components/Products/Filter";
 import SelectedFilter from "../../components/Products/SelectedFilter";
 import { getProducts } from "../../data/products";
-import { getFilters } from "../../data/filter";
+import { getFilters, getCategories } from "../../data/filter";
+import { getCampaigns } from "../../data/campaign";
 let start = 0;
 let end = 12;
 let fetched = [];
@@ -75,10 +76,12 @@ for (let i = 0; i < 12; i++) {
 
 export default function index({
   _products,
+  _query,
   _filters,
   _filterValues,
   _orderBy,
-  category,
+  _categories,
+  _campaign,
 }) {
   const router = useRouter();
   const [products, setProducts] = useState(_products);
@@ -87,14 +90,13 @@ export default function index({
   const [selected, setSelected] = useState("");
   const [filters, setFilters] = useState(_filters);
   const [filterValues, setFilterValues] = useState({ ..._filterValues });
-  const [loading, setloading] = useState(true);
+  const [loading, setloading] = useState(false);
 
   useEffect(() => {
     if (fetched.length !== 0) {
       setProducts([...fetched]);
     }
   }, []);
-
   useEffect(() => {
     setFilterValues(_filterValues);
     setOrderBy(_orderBy);
@@ -139,13 +141,18 @@ export default function index({
       lastURL = getUrl();
       router.push(getUrl());
     }
-
     if (orderBy === _orderBy && filterValues === _filterValues) fetchProducts();
   }, [orderBy, filterValues]);
 
   const handleSelect = (type, value) => {
     let temp = { ...filterValues };
-    if (type == "color") {
+    if (type == "category") {
+      if (temp.categoryId !== value) {
+        temp.categoryId = value;
+      } else {
+        temp.categoryId = null;
+      }
+    } else if (type == "color") {
       if (temp.colors.includes(value)) {
         temp.colors = temp.colors.filter((id) => id !== value);
       } else {
@@ -170,7 +177,20 @@ export default function index({
   };
 
   const getQuery = () => {
-    let query = `?categoryId=${category}&start=${start}&end=${end}&orderBy=${orderBy}&`;
+    let query = "";
+    if (_query !== null) {
+      query = `?query=${_query}&start=${start}&end=${end}&orderBy=${orderBy}&`;
+      if (filterValues.categoryId !== null) {
+        query = `?query=${_query}&categoryId=${filterValues.categoryId}&start=${start}&end=${end}&orderBy=${orderBy}&`;
+      }
+    } else if (_campaign !== null) {
+      query = `?campaignId=${_campaign}&start=${start}&end=${end}&orderBy=${orderBy}&`;
+      if (filterValues.categoryId !== null) {
+        query = `?campaignId=${_campaign}&categoryId=${filterValues.categoryId}&start=${start}&end=${end}&orderBy=${orderBy}&`;
+      }
+    } else {
+      query = `?categoryId=${filterValues.categoryId}&start=${start}&end=${end}&orderBy=${orderBy}&`;
+    }
 
     filterValues.colors.forEach((color) => {
       query += `color=${color}&`;
@@ -186,7 +206,6 @@ export default function index({
     if (filterValues.max !== null) {
       query += `max=${filterValues.max}&`;
     }
-
     return query;
   };
   const getUrl = () => {
@@ -224,20 +243,42 @@ export default function index({
 
     if (sizeQuery !== "" || colorQuery !== "") {
       filter = `?filter=${colorQuery + sizeQuery}`;
+      if (_query !== null || _campaign !== null) {
+        filter = `&filter=${colorQuery + sizeQuery}`;
+      }
     }
     if (orderBy !== "newest") {
       orderby = `?orderBy=${orderBy}`;
-      if (filter !== "") {
+      if (filter !== "" || _query !== null || _campaign !== null) {
         orderby = `&orderBy=${orderBy}`;
       }
     }
     if (filterValues.min !== null && filterValues.max !== null) {
       minmax = `?min=${filterValues.min}&max=${filterValues.max}`;
-      if (filter !== "" || orderby !== "") {
+      if (
+        filter !== "" ||
+        orderby !== "" ||
+        _query !== null ||
+        _campaign !== null
+      ) {
         minmax = `&min=${filterValues.min}&max=${filterValues.max}`;
       }
     }
-    URL = `/${category + filter + orderby + minmax}`;
+    if (_query !== null) {
+      URL = `/search?query=${_query + filter + orderby + minmax}`;
+      if (filterValues.categoryId !== null) {
+        URL = `/search?query=${_query}&categoryId=${
+          filterValues.categoryId + filter + orderby + minmax
+        }`;
+      }
+    } else if (_campaign !== null) {
+      URL = `/${_campaign + filter + orderby + minmax}`;
+      if (filterValues.categoryId !== null) {
+        URL = `/${_campaign}?categoryId=${
+          filterValues.categoryId + filter + orderby + minmax
+        }`;
+      }
+    } else URL = `/${filterValues.categoryId + filter + orderby + minmax}`;
     return URL;
   };
 
@@ -260,13 +301,27 @@ export default function index({
     return fV;
   };
 
-  const getTitle = (title) => {
-    title = (title[0].toUpperCase() + title.substring(1)).replace("-", " ");
-    
+  const getTitle = () => {
+    let title = filterValues.categoryId;
+
+    if (_query !== null) {
+      title = _query;
+    }
+    if (_campaign !== null) {
+      title = _campaign;
+    }
+    if (title === null) {
+      title = "title";
+    }
+    title = (title[0].toUpperCase() + title.substring(1)).replace(/-/g, " ");
+
     for (let index = 0; index < title.length; index++) {
       if (title[index] === " ") {
         //title = title.replace(title[index + 1], title[index + 1].toUpperCase());
-        title=title.substr(0,index+1)+title[index+1].toUpperCase()+title.substr(index+2,title.length);
+        title =
+          title.substr(0, index + 1) +
+          title[index + 1].toUpperCase() +
+          title.substr(index + 2, title.length);
       }
     }
     return title;
@@ -274,9 +329,7 @@ export default function index({
   return (
     <>
       <Head>
-        <title>
-          {getTitle(category)}
-        </title>
+        <title>{getTitle()}</title>
         <meta name="keyword" content="E commerce app" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
@@ -287,15 +340,43 @@ export default function index({
               <li>
                 <Link href="/">Home</Link>
               </li>
+              {_query !== null ? (
+                <>
+                  <li>/</li>
+                  <li>Search</li>
+                </>
+              ) : null}
               <li>/</li>
               <li aria-current="page" className="active">
-                {getTitle(category)}
+                {getTitle()}
               </li>
             </ol>
           </nav>
         </div>
         <div className="d-flex">
           <div className="filter-container">
+            {_categories !== null ? (
+              <div className="filter">
+                <h5>Categories</h5>
+                <div className="prices">
+                  {_categories.map((category) => (
+                    <div
+                      className={
+                        filterValues.categoryId == category.categoryId
+                          ? "item selected"
+                          : "item "
+                      }
+                      key={category.categoryId}
+                      onClick={() =>
+                        handleSelect("category", category.categoryId)
+                      }
+                    >
+                      {category.categoryName}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : null}
             <div className="filter">
               <h5>Colors</h5>
               <div className="colors">
@@ -387,12 +468,23 @@ export default function index({
             <div className="products-container">
               {!loading
                 ? products.map((p) => (
-                    <ProductCard
+                    <Link
+                      href={
+                        "/" +
+                        p.product.subCategoryId +
+                        "/" +
+                        p.product.productId
+                      }
                       key={p.product.productId}
-                      product={p.product}
-                      colors={p.colors}
-                      sizes={p.sizes}
-                    />
+                    >
+                      <a>
+                        <ProductCard
+                          product={p.product}
+                          colors={p.colors}
+                          sizes={p.sizes}
+                        />
+                      </a>
+                    </Link>
                   ))
                 : skeletonContainer}
             </div>
@@ -410,13 +502,19 @@ export default function index({
 
 export async function getServerSideProps(context) {
   const filterValues = {
+    categoryId: null,
     min: null,
     max: null,
     colors: [],
     sizes: [],
   };
   let orderBy = "newest";
+  let query = "";
+  let categories = null;
+  let campaign = null;
+  let URLquery = null;
   const filters = await getFilters();
+  const campaigns = await getCampaigns();
   if (context.query.filter !== undefined) {
     context.query.filter.split(";").forEach((element) => {
       if (element.split(":")[0] === "size") {
@@ -453,8 +551,47 @@ export async function getServerSideProps(context) {
   if (context.query.orderBy !== undefined) {
     orderBy = context.query.orderBy;
   }
+  let check = false;
+  campaigns.forEach((campaign) => {
+    if (campaign.campaignId === context.params.category) {
+      check = true;
+    }
+  });
 
-  let query = `?categoryId=${context.params.category}&start=${start}&end=${end}&orderBy=${orderBy}&`;
+  if (context.params.category === "search") {
+    URLquery = context.query.query;
+    categories = await getCategories();
+    if (context.query.categoryId !== undefined) {
+      for (let index = 0; index < categories.length; index++) {
+        if (categories[index].categoryId === context.query.categoryId) {
+          filterValues.categoryId = context.query.categoryId;
+          break;
+        }
+      }
+    }
+    query = `?query=${context.query.query}&start=${start}&end=${end}&orderBy=${orderBy}&`;
+    if (filterValues.categoryId !== null) {
+      query = `?query=${context.query.query}&categoryId=${filterValues.categoryId}&start=${start}&end=${end}&orderBy=${orderBy}&`;
+    }
+  } else if (check) {
+    campaign = context.params.category;
+    query = `?campaign=${context.params.category}&start=${start}&end=${end}&orderBy=${orderBy}&`;
+    if (filterValues.categoryId !== null) {
+      query = `?campaign=${context.params.category}&categoryId=${filterValues.categoryId}&start=${start}&end=${end}&orderBy=${orderBy}&`;
+    }
+    categories = await getCategories();
+    if (context.query.categoryId !== undefined) {
+      for (let index = 0; index < categories.length; index++) {
+        if (categories[index].categoryId === context.query.categoryId) {
+          filterValues.categoryId = context.query.categoryId;
+          break;
+        }
+      }
+    }
+  } else {
+    filterValues.categoryId = context.params.category;
+    query = `?categoryId=${context.params.category}&start=${start}&end=${end}&orderBy=${orderBy}&`;
+  }
 
   filterValues.colors.forEach((color) => {
     query += `color=${color}&`;
@@ -470,16 +607,17 @@ export async function getServerSideProps(context) {
   if (filterValues.max !== null) {
     query += `max=${filterValues.max}&`;
   }
-
   const products = await getProducts(query);
 
   return {
     props: {
       _products: products,
+      _query: URLquery,
       _filters: filters,
       _filterValues: filterValues,
       _orderBy: orderBy,
-      category: context.params.category,
+      _categories: categories,
+      _campaign: campaign,
     },
   };
 }

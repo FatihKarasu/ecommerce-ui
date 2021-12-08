@@ -15,6 +15,7 @@ export interface IProduct{
     productTitle: string
     productDetail: string
     productPrice: string
+    productSalePrice: string
     productImage: string
 }
 export interface IColor{

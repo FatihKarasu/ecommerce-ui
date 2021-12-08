@@ -10,16 +10,19 @@ export default function Product({ item, changeItemAmount, deleteCartItem }) {
       </div>
       <div className="price">
         <div className="d-flex align-items-center">
-          <div className="item-price">{product.productPrice} TL</div>x
+          <div className="item-price">
+            {product.productPrice} TL
+          </div>
+          x
           <input
             type="number"
             defaultValue={item.amount}
-            onFocus={(e)=>e.target.select()}
-            onBlur={(e)=>e.target.value=item.amount}
+            onFocus={(e) => e.target.select()}
+            onBlur={(e) => (e.target.value = item.amount)}
             onChange={(e) => changeItemAmount(item.cartItemId, e.target.value)}
           />
         </div>
-        <div className="total"> {item.amount * product.productPrice} ₺</div>
+        <div className="total">{item.amount * product.productPrice} TL</div>
       </div>
       <div className="button-container">
         <i

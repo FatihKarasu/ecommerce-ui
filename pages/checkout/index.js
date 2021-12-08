@@ -169,17 +169,26 @@ export default function checkout() {
     if (name === "cardNumber") {
       if (value.length === 5) {
         if (value[value.length - 1] !== " ") {
-          value=value.substring(0,value.length-1)+" "+value[value.length-1]
+          value =
+            value.substring(0, value.length - 1) +
+            " " +
+            value[value.length - 1];
         }
       }
       if (value.length === 10) {
         if (value[value.length - 1] !== " ") {
-          value=value.substring(0,value.length-1)+" "+value[value.length-1]
+          value =
+            value.substring(0, value.length - 1) +
+            " " +
+            value[value.length - 1];
         }
       }
       if (value.length === 15) {
         if (value[value.length - 1] !== " ") {
-          value=value.substring(0,value.length-1)+" "+value[value.length-1]
+          value =
+            value.substring(0, value.length - 1) +
+            " " +
+            value[value.length - 1];
         }
       }
     }
@@ -188,7 +197,7 @@ export default function checkout() {
       [name]: value,
     });
   };
-//.replace(/\s/g, ''); remove spaces
+  //.replace(/\s/g, ''); remove spaces
   const handleAddress = (type, id) => {
     setPaymentData({
       ...paymentData,
@@ -206,18 +215,18 @@ export default function checkout() {
       {user.id !== "" ? (
         <div className="row">
           <div className="breadcrumb">
-          <nav aria-label="breadcrumb">
-            <ol>
-              <li>
-                <Link href="/">Home</Link>
-              </li>
-              <li>/</li>
-              <li aria-current="page" className="active">
-                Checkout
-              </li>
-            </ol>
-          </nav>
-        </div>
+            <nav aria-label="breadcrumb">
+              <ol>
+                <li>
+                  <Link href="/">Home</Link>
+                </li>
+                <li>/</li>
+                <li aria-current="page" className="active">
+                  Checkout
+                </li>
+              </ol>
+            </nav>
+          </div>
           <div className="col-9 checkout">
             <h3>Delivery Address</h3>
             <div className="address-container">
