@@ -208,15 +208,26 @@ export default function index({
     }
     return query;
   };
+  
   const getUrl = () => {
     let URL = "";
     let colorQuery = "";
     let sizeQuery = "";
-    let minmax = "";
     let colors = [];
     let sizes = [];
-    let filter = "";
-    let orderby = "";
+
+    if (_query !== null) {
+      URL = `/search?query=${_query}`;
+      if (filterValues.categoryId !== null) {
+        URL += `&categoryId=${filterValues.categoryId}`;
+      }
+    } else if (_campaign !== null) {
+      URL = `/${_campaign}`;
+      if (filterValues.categoryId !== null) {
+        URL += `?categoryId=${filterValues.categoryId}`;
+      }
+    } else URL = `/${filterValues.categoryId}`;
+
     filterValues.colors.forEach((color) => {
       filters.colors.forEach((c) => {
         if (c.colorId === color) {
@@ -242,43 +253,29 @@ export default function index({
     }
 
     if (sizeQuery !== "" || colorQuery !== "") {
-      filter = `?filter=${colorQuery + sizeQuery}`;
-      if (_query !== null || _campaign !== null) {
-        filter = `&filter=${colorQuery + sizeQuery}`;
+      if (URL.includes("?")) {
+        URL += `&filter=${colorQuery + sizeQuery}`;
+      } else {
+        URL += `?filter=${colorQuery + sizeQuery}`;
       }
     }
     if (orderBy !== "newest") {
-      orderby = `?orderBy=${orderBy}`;
-      if (filter !== "" || _query !== null || _campaign !== null) {
-        orderby = `&orderBy=${orderBy}`;
+      if (URL.includes("?")) {
+        URL+= `&orderBy=${orderBy}`;
+      } else{
+        URL+= `?orderBy=${orderBy}`;
       }
+     
     }
     if (filterValues.min !== null && filterValues.max !== null) {
-      minmax = `?min=${filterValues.min}&max=${filterValues.max}`;
-      if (
-        filter !== "" ||
-        orderby !== "" ||
-        _query !== null ||
-        _campaign !== null
-      ) {
-        minmax = `&min=${filterValues.min}&max=${filterValues.max}`;
+      if (URL.includes("?")) {
+        URL += `&min=${filterValues.min}&max=${filterValues.max}`;
+      } else {
+        URL += `?min=${filterValues.min}&max=${filterValues.max}`;
       }
+      
     }
-    if (_query !== null) {
-      URL = `/search?query=${_query + filter + orderby + minmax}`;
-      if (filterValues.categoryId !== null) {
-        URL = `/search?query=${_query}&categoryId=${
-          filterValues.categoryId + filter + orderby + minmax
-        }`;
-      }
-    } else if (_campaign !== null) {
-      URL = `/${_campaign + filter + orderby + minmax}`;
-      if (filterValues.categoryId !== null) {
-        URL = `/${_campaign}?categoryId=${
-          filterValues.categoryId + filter + orderby + minmax
-        }`;
-      }
-    } else URL = `/${filterValues.categoryId + filter + orderby + minmax}`;
+   
     return URL;
   };
 
