@@ -1,9 +1,10 @@
 import { configureStore, ThunkAction, Action } from '@reduxjs/toolkit'
 import userReducer from './userReducer'
 import cartReducer from './cartReducer'
+import notificationReducer from './notificationReducer'
 export function makeStore() {
   return configureStore({
-    reducer: { user: userReducer,cart:cartReducer},
+    reducer: { user: userReducer,cart:cartReducer,notification:notificationReducer},
 
   })
 }

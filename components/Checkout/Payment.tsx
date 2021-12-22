@@ -22,12 +22,13 @@ export default function Payment({
   return (
     <Row>
       <Col>
-        <Form noValidate validated={validated}>
+        <Form noValidate >
           <Row className="mb-3">
             <Form.Group as={Col} controlId="formGridName">
               <Form.Label>Name on Card</Form.Label>
               <Form.Control
                 required
+                isInvalid={feedback.nameIsInvalid}
                 type="text"
                 placeholder="Name on Card"
                 name="name"
@@ -39,6 +40,7 @@ export default function Payment({
               <Form.Label>Card Number</Form.Label>
               <Form.Control
                 required
+                isInvalid={feedback.cardNumberIsInvalid}
                 type="text"
                 placeholder="Card Number"
                 maxLength={19}
@@ -89,6 +91,7 @@ export default function Payment({
               <Form.Label>CVV</Form.Label>
               <Form.Control
                 required
+                isInvalid={feedback.cvvIsInvalid}
                 type="text"
                 placeholder="CVV"
                 maxLength={3}

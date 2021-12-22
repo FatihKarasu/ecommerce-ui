@@ -16,12 +16,10 @@ export default function Cart({ show, onHide, user, setAmount }) {
     setAmount(cart.length);
   }, [cart]);
   const deletecartitem = async (cartItemId) => {
-    deleteCartItem(cartItemId,user,dispatch,deleteItem,logout,onHide)
-    
+    deleteCartItem(cartItemId, user, dispatch, deleteItem, logout, onHide);
   };
   const changeitemamount = async (cartItemId, amount) => {
-    changeItemAmount(cartItemId,amount,user,dispatch,changeAmount)
-   
+    changeItemAmount(cartItemId, amount, user, dispatch, changeAmount);
   };
   const goCheckout = () => {
     onHide();
@@ -34,20 +32,26 @@ export default function Cart({ show, onHide, user, setAmount }) {
           <Offcanvas.Title>Shopping Cart</Offcanvas.Title>
         </Offcanvas.Header>
         <Offcanvas.Body>
-          {user.id === ""
-            ? null
-            : cart.map((item) => (
-                <CartItem
-                  key={item.cartItemId}
-                  item={item}
-                  deleteCartItem={deletecartitem}
-                  changeAmount={changeitemamount}
-                />
-              ))}
-          <Button type="button" onClick={() => goCheckout()}>
-            Checkout
-          </Button>
-        </Offcanvas.Body>
+          {cart.length === 0 ? (
+            <div>Your cart is empty.</div>
+          ) : (
+            cart.map((item) => (
+              <CartItem
+                key={item.cartItemId}
+                item={item}
+                deleteCartItem={deletecartitem}
+                changeAmount={changeitemamount}
+              />
+            ))
+          )}
+        </Offcanvas.Body>{" "}
+        {cart.length === 0 ? null : (
+          <div className="d-flex w-100 justify-content-center my-3">
+            <Button type="button" onClick={() => goCheckout()}>
+              Checkout
+            </Button>
+          </div>
+        )}
       </Offcanvas>
     </>
   );

@@ -6,13 +6,38 @@ export async function getCartByUserId(userId) {
   return response.data;
 }
 
-export async function addtocart(formData, config) {
-  const response = await axios.post(`${API}/cart/add`, formData, config);
-
-  return response.data;
+export async function addtocart(user,productId,selectedColor,selectedSize,amount,dispatch,logout,addToCart) {
+  if (user.id === "") {
+    return;
+  }
+  const formData = new FormData();
+  formData.append("UserId", user.id);
+  formData.append("ProductId", productId);
+  formData.append("ColorId", selectedColor);
+  formData.append("SizeId", selectedSize);
+  formData.append("Amount", amount);
+  const config = {
+    headers: { Authorization: `Bearer ${user.token}` },
+  };
+  try {
+    const response = await axios.post(`${API}/cart/add`, formData, config);
+    dispatch(addToCart(response.data));
+  } catch (error) {
+    if (error.response.status == 401) {
+      dispatch(logout());
+    }
+  }
+ 
 }
 
-export const deleteCartItem = async (cartItemId,user,dispatch,deleteItem,logout,onHide) => {
+export const deleteCartItem = async (
+  cartItemId,
+  user,
+  dispatch,
+  deleteItem,
+  logout,
+  onHide
+) => {
   const config = {
     headers: { Authorization: `Bearer ${user.token}` },
   };
@@ -25,11 +50,9 @@ export const deleteCartItem = async (cartItemId,user,dispatch,deleteItem,logout,
   } catch (error) {
     if (error.response.status == 401) {
       dispatch(logout());
-      if(onHide!==null)
-      {
+      if (onHide !== null) {
         onHide();
       }
-     
     }
   }
 };
@@ -60,3 +83,4 @@ export const changeItemAmount = async (
     dispatch(changeAmount(obj));
   } catch (error) {}
 };
+

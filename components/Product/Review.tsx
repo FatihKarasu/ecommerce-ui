@@ -4,7 +4,7 @@ export default function Review({review}) {
     return (
         <div className="review">
             <Rating value={review.rating} clickHandler={undefined} size={14}/>
-            <small>date</small>
+            <small>{review.date}</small>
             <div>{review.reviewText}</div>
         </div>
     )

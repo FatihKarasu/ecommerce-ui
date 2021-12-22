@@ -5,7 +5,12 @@ import Link from "next/link";
 
 import { useRouter } from "next/router";
 import { useSelector, useDispatch } from "react-redux";
-import { getCart, deleteItem, changeAmount } from "../../redux/cartReducer";
+import {
+  getCart,
+  deleteItem,
+  changeAmount,
+  clearCart,
+} from "../../redux/cartReducer";
 import { getUser, logout } from "../../redux/userReducer";
 import Product from "../../components/Checkout/Product";
 import Address from "../../components/Checkout/Address";
@@ -17,10 +22,10 @@ import {
   addNewAddress,
   deleteAddress,
 } from "../../data/address";
-
+import { addOrder } from "../../data/order";
 const initialValues = {
-  deliveryAddress: "1",
-  billingAddress: "1",
+  deliveryAddress: "",
+  billingAddress: "",
   name: "",
   cardNumber: "",
   month: "",
@@ -30,10 +35,16 @@ const initialValues = {
 };
 
 const initialFeedbackValues = {
-  monthIsInvalid: false,
+  nameIsInvalid: true,
+  nameFeedback: "",
+  cardNumberIsInvalid: true,
+  cardNumberFeedback: "",
+  monthIsInvalid: true,
   monthFeedback: "",
-  yearIsInvalid: false,
+  yearIsInvalid: true,
   yearFeedback: "",
+  cvvIsInvalid: true,
+  cvvFeedback: "",
 };
 
 export default function checkout() {
@@ -51,10 +62,10 @@ export default function checkout() {
     getAddresses(user, setAddresses, dispatch, logout, router);
   }, []);
   useEffect(() => {
-    if (user.id === "") {
+    if (user.id === "" || cart.length === 0) {
       router.push("/");
     }
-  }, [user]);
+  }, [user, cart]);
 
   useEffect(() => {
     if (cart.length !== 0) {
@@ -102,17 +113,56 @@ export default function checkout() {
   };
 
   const order = () => {
-    setValidated(true);
+    if (
+      paymentData.deliveryAddress !== "" &&
+      paymentData.billingAddress !== "" &&
+      !checkFeedback()
+    ) {
+      addOrder(
+        user,
+        paymentData.deliveryAddress,
+        paymentData.billingAddress,
+        dispatch,
+        clearCart,
+        router
+      );
+    }
+  };
+
+  const checkFeedback = () => {
+    if (
+      feedback.cardNumberIsInvalid ||
+      feedback.cvvIsInvalid ||
+      feedback.nameIsInvalid ||
+      feedback.yearIsInvalid ||
+      feedback.monthIsInvalid
+    ) {
+      return true;
+    }
+    return false;
   };
   const handleInput = (e) => {
-    var year = new Date().getFullYear().toString().substr(-2);
-    var maxYear = (new Date().getFullYear() + 11).toString().substr(-2);
-    var month = new Date().getMonth() + 1;
-
     let { name, value } = e.target;
+    if (name === "year" || name === "month") {
+      var year = new Date().getFullYear().toString().substr(-2);
+      var maxYear = (new Date().getFullYear() + 11).toString().substr(-2);
+      var month = new Date().getMonth() + 1;
+    }
+
+    if (name === "name") {
+      const obj = {
+        ...feedback,
+        nameIsInvalid: true,
+        nameFeedback: "Please enter a valid Name",
+      };
+      if (value.length > 0) {
+        obj.nameIsInvalid = false;
+        obj.nameFeedback = "";
+      }
+      setFeedback(obj);
+    }
     if (name === "month") {
       const obj = { ...feedback, monthIsInvalid: false, monthFeedback: "" };
-      setFeedback(obj);
       if (
         paymentData.year === "" ||
         parseInt(paymentData.year) >= parseInt(year)
@@ -121,52 +171,49 @@ export default function checkout() {
           value = `0${value}`;
         }
         if (parseInt(value) > 12) {
-          const obj = {
-            ...feedback,
-            monthIsInvalid: true,
-            monthFeedback: "Please enter valid month",
-          };
-          setFeedback(obj);
+          obj.monthIsInvalid = true;
+          obj.monthFeedback = "Please enter valid month";
         }
       }
       if (paymentData.year === year) {
         if (value < month || value > 12) {
-          const obj = {
-            ...feedback,
-            monthIsInvalid: true,
-            monthFeedback: "Please enter valid month",
-          };
-          setFeedback(obj);
+          obj.monthIsInvalid = true;
+          obj.monthFeedback = "Please enter valid month";
         }
       }
-    } else if (name === "year") {
-      setFeedback(initialValues);
+      setFeedback(obj);
+    }
+    if (name === "year") {
+      const obj = {
+        ...feedback,
+        yearIsInvalid: false,
+        yearFeedback: "",
+      };
       if (
         parseInt(value) < parseInt(year) ||
         parseInt(value) > parseInt(maxYear)
       ) {
-        const obj = {
-          ...feedback,
-          yearIsInvalid: true,
-          yearFeedback: "Please enter valid year",
-        };
-        setFeedback(obj);
+        obj.yearIsInvalid = true;
+        obj.yearFeedback = "Please enter valid year";
       }
       if (
         parseInt(value) === parseInt(year) &&
         paymentData.month !== "" &&
         parseInt(paymentData.month) < parseInt(month)
       ) {
-        const obj = {
-          yearIsInvalid: false,
-          yearFeedback: "",
-          monthIsInvalid: true,
-          monthFeedback: "Please enter valid month",
-        };
-        setFeedback(obj);
+        obj.monthIsInvalid = true;
+        obj.monthFeedback = "Please enter valid month";
+        obj.yearIsInvalid = false;
+        obj.yearFeedback = "";
       }
+      setFeedback(obj);
     }
     if (name === "cardNumber") {
+      const obj = {
+        ...feedback,
+        cardNumberIsInvalid: true,
+        cardNumberFeedback: "Please enter a valid Card Number",
+      };
       if (value.length === 5) {
         if (value[value.length - 1] !== " ") {
           value =
@@ -191,19 +238,37 @@ export default function checkout() {
             value[value.length - 1];
         }
       }
+      if (value.replace(/\s/g, "").length == 16) {
+        obj.cardNumberIsInvalid = false;
+        obj.cardNumberFeedback = "";
+      }
+      setFeedback(obj);
+    }
+    if (name === "cvv") {
+      const obj = {
+        ...feedback,
+        cvvIsInvalid: true,
+        cvvFeedback: "Please enter a valid CVV",
+      };
+      if (value.length === 3) {
+        obj.cvvIsInvalid = false;
+        obj.cvvFeedback = "";
+      }
+
+      setFeedback(obj);
     }
     setPaymentData({
       ...paymentData,
       [name]: value,
     });
   };
-  //.replace(/\s/g, ''); remove spaces
   const handleAddress = (type, id) => {
     setPaymentData({
       ...paymentData,
       [type]: id,
     });
   };
+
   return (
     <div className="container checkout-container">
       <Head>
@@ -212,7 +277,7 @@ export default function checkout() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      {user.id !== "" ? (
+      {user.id !== "" || cart.length !== 0 ? (
         <div className="row">
           <div className="breadcrumb">
             <nav aria-label="breadcrumb">
@@ -288,13 +353,20 @@ export default function checkout() {
                 </div>
               </div>
             </div>
-            <Button
-              variant="primary"
-              type="button"
-              onClick={() => setValidated(true)}
-            >
-              Save
-            </Button>
+            <div className="d-flex w-100 justify-content-center my-3">
+              <Button
+                variant="primary"
+                type="button"
+                onClick={() => order()}
+                disabled={
+                  paymentData.billingAddress == "" ||
+                  paymentData.deliveryAddress === "" ||
+                  checkFeedback()
+                }
+              >
+                Order
+              </Button>
+            </div>
           </div>
         </div>
       ) : null}

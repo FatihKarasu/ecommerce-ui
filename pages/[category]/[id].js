@@ -11,10 +11,13 @@ import { getUser, logout } from "../../redux/userReducer";
 import { useState, useEffect } from "react";
 import { getProductById, getProducts } from "../../data/products";
 import { addtocart } from "../../data/cart";
+import {
+  addNotification,
+} from "../../redux/notificationReducer";
 import Reviews from "../../components/Product/Reviews";
 let func;
 let check = false;
-const images = ["../Images/1.jpg", "../Images/2.jpg", "../Images/3.jpg",];
+const images = ["../Images/1.jpg", "../Images/2.jpg", "../Images/3.jpg"];
 export default function product({ data, category }) {
   const { product, colors, sizes, rating, reviewCount } = { ...data };
   const [selectedColor, setSelectedColor] = useState("");
@@ -25,7 +28,6 @@ export default function product({ data, category }) {
   const [fetch, setFetch] = useState(false);
   const dispatch = useDispatch();
   const user = useSelector(getUser);
- 
 
   useEffect(() => {
     setSelectedColor("");
@@ -36,26 +38,19 @@ export default function product({ data, category }) {
   }, [data]);
 
   const addCart = async () => {
-    if (user.id === "") {
-      console.log("Please Login.");
-      return;
-    }
-    const formData = new FormData();
-    formData.append("UserId", user.id);
-    formData.append("ProductId", product.productId);
-    formData.append("ColorId", selectedColor);
-    formData.append("SizeId", selectedSize);
-    formData.append("Amount", 1);
-    const config = {
-      headers: { Authorization: `Bearer ${user.token}` },
-    };
-    try {
-      dispatch(addToCart(await addtocart(formData, config)));
-    } catch (error) {
-      if (error.response.status == 401) {
-        dispatch(logout());
-      }
-    }
+    addtocart(
+      user,
+      product.productId,
+      selectedColor,
+      selectedSize,
+      1,
+      dispatch,
+      logout,
+      addToCart
+    );
+    dispatch(
+      addNotification({ notification: "Product Added", variant: "success" })
+    );
   };
 
   const handleSelect = (type, id) => {
@@ -86,10 +81,6 @@ export default function product({ data, category }) {
       }
     }
     return title;
-  };
-
-  const ratingChanged = (newRating) => {
-    console.log(newRating);
   };
 
   const handleTabs = async (k) => {
@@ -169,9 +160,8 @@ export default function product({ data, category }) {
         </div>
         <div className="product-content">
           <div className="left">
-            
-              <Carousel items={images}/>
-            
+            <Carousel items={images} />
+
             <div id="tabs" className="tabs mt-5">
               <Tabs
                 id="tab"

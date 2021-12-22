@@ -1,8 +1,6 @@
 import axios from "axios";
 import { API } from "../data/base";
 
-
-
 export const getAddresses = async (
   user,
   setAddresses,
@@ -24,6 +22,28 @@ export const getAddresses = async (
     }
   }
 };
+export const getAddress = async (
+  user,
+  addressId,
+  setAddress,
+  dispatch,
+  logout,
+  router
+) => {
+  const config = {
+    headers: { Authorization: `Bearer ${user.token}` },
+  };
+  try {
+    const response = await axios.get(`${API}/address/${addressId}`, config);
+
+    setAddress(response.data);
+  } catch (error) {
+    if (error.response.status == 401) {
+      dispatch(logout());
+      router.push("/");
+    }
+  }
+};
 export const addNewAddress = async (
   address,
   user,
@@ -33,7 +53,6 @@ export const addNewAddress = async (
   logout,
   router
 ) => {
-  
   const formData = new FormData();
   formData.append("UserId", user.id);
   formData.append("Name", address.name);
@@ -43,7 +62,9 @@ export const addNewAddress = async (
   formData.append("Neighbourhood", address.neighbourhood);
   formData.append("PhoneNumber", address.phoneNumber);
   formData.append("Title", address.title);
-
+  for (var pair of formData.entries()) {
+    console.log(pair[0] + ", " + pair[1]);
+  }
   const config = {
     headers: { Authorization: `Bearer ${user.token}` },
   };

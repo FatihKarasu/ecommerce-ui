@@ -1,8 +1,8 @@
 import Head from "next/head";
 import Banner from "../components/Home/Banner";
-import Carousel from "../components/Home/Carousel";
+import Carousel from "../components/Home/HomeCarousel";
 import { getCampaigns } from "../data/campaign";
-export default function Home({_campaigns}) {
+export default function Home({ _campaigns }) {
   return (
     <>
       <Head>
@@ -14,13 +14,14 @@ export default function Home({_campaigns}) {
       <div className="container home">
         <Carousel items={_campaigns} />
         <Banner />
+       
       </div>
     </>
   );
 }
 
 export async function getServerSideProps({ req }) {
-  const campaigns= await getCampaigns()
+  const campaigns = await getCampaigns();
   return {
     props: { _campaigns: campaigns },
   };
