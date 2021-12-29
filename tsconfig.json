@@ -14,6 +14,6 @@
     "isolatedModules": true,
     "jsx": "preserve"
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "pages/_app.js", "components/SlickCarousel/SlickCarousel.tsx"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "pages/_app.js", "components/SlickCarousel/SlickCarousel.tsx", "components/NotificationContainer.jsx"],
   "exclude": ["node_modules"]
 }

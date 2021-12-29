@@ -11,7 +11,7 @@ export default function NotificationContainer() {
   const dispatch = useDispatch();
 
   if (notifications.length > lastLength) {
-    setTimeout(() => remove(), 3000);
+    setTimeout(() => move(), 3000);
   }
 
   const remove = () => {
@@ -26,9 +26,7 @@ export default function NotificationContainer() {
           first.offsetHeight +
           parseInt(window.getComputedStyle(first).marginTop)
         }px)`;
-      }
-      else if(document.getElementById("last") !== null)
-      {
+      } else if (document.getElementById("last") !== null) {
         let first = document.getElementById("last");
         console.log(
           first.offsetHeight +
@@ -43,6 +41,36 @@ export default function NotificationContainer() {
     setTimeout(() => {
       dispatch(removeNotification());
     }, 500);
+  };
+
+  const move = () => {
+    if (process.browser) {
+      try {
+        let elems = document.getElementsByClassName("notification");
+        let firstHeight =
+          elems[0].offsetHeight +
+          parseInt(window.getComputedStyle(elems[0]).marginTop) +
+          parseInt(window.getComputedStyle(elems[0]).marginBottom);
+        console.log(firstHeight);
+        for (let index = 0; index < elems.length; index++) {
+          elems[index].style.transform = `translate(0,-${firstHeight}px)`;
+        }
+      } catch (error) {}
+    }
+    setTimeout(() => {
+      clear();
+    }, 500);
+  };
+  const clear = () => {
+    if (process.browser) {
+      try {
+        let elems = document.getElementsByClassName("notification");
+        for (let index = 0; index < elems.length; index++) {
+          elems[index].style.transform = "";
+        }
+      } catch (error) {}
+    }
+    dispatch(removeNotification());
   };
   useEffect(() => {
     let temp = [];
