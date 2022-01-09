@@ -7,7 +7,7 @@ import { useDispatch } from "react-redux";
 import { logout } from "../redux/userReducer";
 import { deleteCartItem, changeItemAmount } from "../data/cart";
 import { useRouter } from "next/router";
-
+import { addNotification } from "../redux/notificationReducer";
 export default function Cart({ show, onHide, user, setAmount }) {
   const cart = useSelector(getCart);
   const dispatch = useDispatch();
@@ -16,10 +16,11 @@ export default function Cart({ show, onHide, user, setAmount }) {
     setAmount(cart.length);
   }, [cart]);
   const deletecartitem = async (cartItemId) => {
-    deleteCartItem(cartItemId, user, dispatch, deleteItem, logout, onHide);
+    await deleteCartItem(cartItemId, user, dispatch, deleteItem, logout,addNotification, onHide)
+    
   };
   const changeitemamount = async (cartItemId, amount) => {
-    changeItemAmount(cartItemId, amount, user, dispatch, changeAmount);
+    changeItemAmount(cartItemId, amount, user, dispatch,addNotification, changeAmount);
   };
   const goCheckout = () => {
     onHide();

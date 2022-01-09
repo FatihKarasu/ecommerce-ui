@@ -10,7 +10,7 @@ import {
 import { useDispatch } from "react-redux";
 import { useRouter } from "next/router";
 import { logout } from "../../redux/userReducer";
-
+import { addNotification } from "../../redux/notificationReducer";
 const initialReview = {
   productId: null,
   rating: null,
@@ -27,12 +27,15 @@ export default function ReviewModal({ show, onHide, product, user }) {
   const dispatch = useDispatch();
   useEffect(() => {
     if (show) {
+      check();
+    }
+    return () => {
       setReview(initialReview);
       check();
     }
   }, [show]);
+  
   const check = async () => {
-    console.log("checked");
     const r = await getReview(user, product.productId);
     if (r !== false) {
       _rating = r.rating;
@@ -55,17 +58,61 @@ export default function ReviewModal({ show, onHide, product, user }) {
         )
       ) {
         onHide();
-      } else console.log("Error");
+        dispatch(
+          addNotification({
+            notification: "Review Submitted",
+            variant: "success",
+            lifeSpan: 3000,
+          })
+        );
+      } else
+        dispatch(
+          addNotification({
+            notification: "Error While Submitting",
+            variant: "danger",
+            lifeSpan: 3000,
+          })
+        );
     } else {
       if (UpdateReview(user, review, dispatch, logout, router)) {
         onHide();
-      } else console.log("Error");
+        dispatch(
+          addNotification({
+            notification: "Updated",
+            variant: "success",
+            lifeSpan: 3000,
+          })
+        );
+      } else
+        dispatch(
+          addNotification({
+            notification: "Update Failed",
+            variant: "danger",
+            lifeSpan: 3000,
+          })
+        );
+    }
+  };
+  const deleteHandler = async () => {
+    if(await DeleteReview(
+      user,
+      review.reviewId,
+      dispatch,
+      logout,
+      router
+    ))
+    {
+      dispatch(addNotification({notification:"Review Deleted",variant:"warning",lifeSpan:3000}))
+      onHide()
+    }
+    else{
+      dispatch(addNotification({notification:"Delete Failed",variant:"danger",lifeSpan:3000}))
+      
     }
   };
   const setRating = (rating) => {
     let temp = review;
     temp.rating = rating;
-    console.log(rating, _rating);
     if (rating == _rating) {
       setDisabled(true);
     } else setDisabled(false);
@@ -129,17 +176,7 @@ export default function ReviewModal({ show, onHide, product, user }) {
           <Button
             variant="danger"
             type="button"
-            onClick={async () => {
-              (await DeleteReview(
-                user,
-                review.reviewId,
-                dispatch,
-                logout,
-                router
-              ))
-                ? onHide()
-                : null;
-            }}
+            onClick={() => deleteHandler()}
           >
             Delete
           </Button>

@@ -16,6 +16,7 @@ import {
   editAddress,
 } from "../../data/address";
 import { getOrdersByUserId } from "../../data/order";
+import { addNotification } from "../../redux/notificationReducer";
 
 export default function index() {
   const router = useRouter();
@@ -54,7 +55,7 @@ export default function index() {
   }, []);
 
   const deleteaddress = async (addressId) => {
-    deleteAddress(addressId, user, setAddresses,addresses, dispatch, logout, router);
+    deleteAddress(addressId, user, setAddresses,addresses, dispatch, logout,addNotification, router);
   };
 
   const addAddress = async (address) => {
@@ -65,12 +66,13 @@ export default function index() {
       addresses,
       dispatch,
       logout,
+      addNotification,
       router
     );
   };
 
   const editaddress = async (address) => {
-    editAddress(address, user, changeAddress, dispatch, logout, router);
+    editAddress(address, user, changeAddress, dispatch, logout,addNotification, router);
   };
   const changeAddress = (address) => {
     const temp = [...addresses];

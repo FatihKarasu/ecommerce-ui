@@ -51,7 +51,7 @@ export default function Header() {
   };
   return (
     <header id="header">
-      <div className="header">
+      <div className="header ">
         <div className="left">
           <div className="logo">
             <Link href={"/"}>

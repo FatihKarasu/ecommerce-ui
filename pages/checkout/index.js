@@ -22,6 +22,7 @@ import {
   addNewAddress,
   deleteAddress,
 } from "../../data/address";
+import { addNotification } from "../../redux/notificationReducer";
 import { addOrder } from "../../data/order";
 const initialValues = {
   deliveryAddress: "",
@@ -78,15 +79,15 @@ export default function checkout() {
   }, [cart]);
 
   const changeitemamount = async (cartItemId, amount) => {
-    changeItemAmount(cartItemId, amount, user, dispatch, changeAmount);
+    changeItemAmount(cartItemId, amount, user, dispatch,addNotification, changeAmount);
   };
 
   const deletecartitem = async (cartItemId) => {
-    deleteCartItem(cartItemId, user, dispatch, deleteItem, logout, null);
+    deleteCartItem(cartItemId, user, dispatch, deleteItem, logout,addNotification, null);
   };
 
   const editaddress = async (address) => {
-    editAddress(address, user, changeAddress, dispatch, logout, router);
+    editAddress(address, user, changeAddress, dispatch, logout,addNotification, router);
   };
   const changeAddress = (address) => {
     const temp = [...addresses];
@@ -108,24 +109,32 @@ export default function checkout() {
       addresses,
       dispatch,
       logout,
+      addNotification,
       router
     );
   };
 
-  const order = () => {
+  const order = async () => {
     if (
       paymentData.deliveryAddress !== "" &&
       paymentData.billingAddress !== "" &&
       !checkFeedback()
     ) {
-      addOrder(
-        user,
-        paymentData.deliveryAddress,
-        paymentData.billingAddress,
-        dispatch,
-        clearCart,
-        router
-      );
+      if (
+        await addOrder(
+          user,
+          paymentData.deliveryAddress,
+          paymentData.billingAddress,
+          dispatch,
+          clearCart,
+          router
+        )
+      ) {
+        dispatch(addNotification({notification:"Order Received",variant:"success",lifeSpan:3000}))
+      }
+      else{
+        dispatch(addNotification({notification:"Error",variant:"danger",lifeSpan:3000}))
+      }
     }
   };
 

@@ -11,7 +11,7 @@ const dropdownItems = [
 let start = 0;
 let end = 6;
 
-export default function Reviews({ productId, count }) {
+export default function Reviews({ productId, setShow,show }) {
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState({
     id: "newest",
@@ -25,8 +25,11 @@ export default function Reviews({ productId, count }) {
     setReviews(await getReviews(productId, start, end, selected.id));
   };
   useEffect(() => {
-    fetch();
-  }, [selected.id,productId]);
+    if(!show)
+    {
+      fetch();
+    }
+  }, [selected.id,productId,show]);
   const clickHandler = (title) => {
     setSelected(title);
     if (process.browser) {
@@ -76,7 +79,7 @@ export default function Reviews({ productId, count }) {
         </div>
       </div>
       {reviews.map((review) => (
-        <Review key={review.reviewId} review={review} />
+        <Review key={review.reviewId} review={review} setShow={setShow}/>
       ))}
       <div className="d-flex">
         <div className="load-button" onClick={() => loadMore()}>

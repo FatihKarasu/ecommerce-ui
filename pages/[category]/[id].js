@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Head from "next/head";
+import ReviewModal from "../../components/Profile/ReviewModal"
 import { useDispatch } from "react-redux";
 import { Button, Tabs, Tab } from "react-bootstrap";
 import SlickCarousel from "../../components/SlickCarousel/SlickCarousel";
@@ -11,13 +12,12 @@ import { getUser, logout } from "../../redux/userReducer";
 import { useState, useEffect } from "react";
 import { getProductById, getProducts } from "../../data/products";
 import { addtocart } from "../../data/cart";
-import {
-  addNotification,
-} from "../../redux/notificationReducer";
+import { addNotification } from "../../redux/notificationReducer";
 import Reviews from "../../components/Product/Reviews";
 let func;
 let check = false;
 const images = ["../Images/1.jpg", "../Images/2.jpg", "../Images/3.jpg"];
+
 export default function product({ data, category }) {
   const { product, colors, sizes, rating, reviewCount } = { ...data };
   const [selectedColor, setSelectedColor] = useState("");
@@ -25,6 +25,7 @@ export default function product({ data, category }) {
   const [similarProducts, setSimilarProducts] = useState(null);
   const [key, setKey] = useState("detail");
   const [reviews, setReviews] = useState();
+  const [showReviewModal, setShowReviewModal] = useState(false)
   const [fetch, setFetch] = useState(false);
   const dispatch = useDispatch();
   const user = useSelector(getUser);
@@ -38,19 +39,19 @@ export default function product({ data, category }) {
   }, [data]);
 
   const addCart = async () => {
-    addtocart(
-      user,
-      product.productId,
-      selectedColor,
-      selectedSize,
-      1,
-      dispatch,
-      logout,
-      addToCart
-    );
-    dispatch(
-      addNotification({ notification: "Product Added", variant: "success" })
-    );
+   
+      await addtocart(
+        user,
+        product.productId,
+        selectedColor,
+        selectedSize,
+        1,
+        dispatch,
+        logout,
+        addNotification,
+        addToCart
+      )
+    
   };
 
   const handleSelect = (type, id) => {
@@ -176,7 +177,8 @@ export default function product({ data, category }) {
                   {fetch === true && reviewCount !== 0 ? (
                     <Reviews
                       productId={product.productId}
-                      count={reviewCount}
+                      setShow={setShowReviewModal}
+                      show={showReviewModal}
                     />
                   ) : null}
                 </Tab>
@@ -273,6 +275,7 @@ export default function product({ data, category }) {
           <SlickCarousel items={similarProducts} />
         </div>
       </div>
+      <ReviewModal show={showReviewModal} onHide={()=>setShowReviewModal(false)} product={product} user={user}/>
     </>
   );
 }

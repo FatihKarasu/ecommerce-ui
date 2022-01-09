@@ -51,6 +51,7 @@ export const addNewAddress = async (
   addresses,
   dispatch,
   logout,
+  addNotification,
   router
 ) => {
   const formData = new FormData();
@@ -62,9 +63,7 @@ export const addNewAddress = async (
   formData.append("Neighbourhood", address.neighbourhood);
   formData.append("PhoneNumber", address.phoneNumber);
   formData.append("Title", address.title);
-  for (var pair of formData.entries()) {
-    console.log(pair[0] + ", " + pair[1]);
-  }
+ 
   const config = {
     headers: { Authorization: `Bearer ${user.token}` },
   };
@@ -73,11 +72,13 @@ export const addNewAddress = async (
     const response = await axios.post(`${API}/address`, formData, config);
 
     setAddresses([...addresses, response.data]);
+    dispatch(addNotification({notification:"Address Added",variant:"success",lifeSpan:3000}))
   } catch (error) {
     if (error.response.status == 401) {
       dispatch(logout());
       router.push("/");
     }
+    dispatch(addNotification({notification:"Error",variant:"danger",lifeSpan:3000}))
   }
 };
 
@@ -87,6 +88,7 @@ export const editAddress = async (
   changeAddress,
   dispatch,
   logout,
+  addNotification,
   router
 ) => {
   const formData = new FormData();
@@ -107,11 +109,13 @@ export const editAddress = async (
   try {
     const response = await axios.post(`${API}/address/edit`, formData, config);
     changeAddress(address);
+    dispatch(addNotification({notification:"Address Updated",variant:"success",lifeSpan:3000}))
   } catch (error) {
     if (error.response.status == 401) {
       dispatch(logout());
       router.push("/");
     }
+    dispatch(addNotification({notification:"Error",variant:"danger",lifeSpan:3000}))
   }
 };
 
@@ -122,6 +126,7 @@ export const deleteAddress = async (
   addresses,
   dispatch,
   logout,
+  addNotification,
   router
 ) => {
   const config = {
@@ -137,6 +142,7 @@ export const deleteAddress = async (
       (address) => address.addressId !== addressId
     );
     setAddresses(filtered);
+    dispatch(addNotification({notification:"Address Deleted",variant:"warning",lifeSpan:3000}))
   } catch (error) {
     if (error.response.status == 401) {
       dispatch(logout());
@@ -145,5 +151,6 @@ export const deleteAddress = async (
     if (error.response.status == 500) {
       console.log(error);
     }
+    dispatch(addNotification({notification:"Delete",variant:"danger",lifeSpan:3000}))
   }
 };

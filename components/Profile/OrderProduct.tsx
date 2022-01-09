@@ -4,6 +4,7 @@ import { logout,getUser } from "../../redux/userReducer";
 import { addToCart } from "../../redux/cartReducer";
 import { addtocart } from "../../data/cart";
 import { useDispatch, useSelector } from "react-redux";
+import { addNotification } from "../../redux/notificationReducer";
 import ReviewModal from "./ReviewModal";
 export default function OrderProduct({ orderProduct }) {
   const { product, amount, productColor, productSize } = orderProduct;
@@ -35,7 +36,7 @@ export default function OrderProduct({ orderProduct }) {
           <div className="icon" title="Rate this product" onClick={()=>setShow(true)}>
             <i className="far fa-grin-stars"></i> Rate
           </div>
-          <div className="icon" title="Add to Cart" onClick={()=>addtocart(user,product.productId,productColor.colorId,productSize.sizeId,amount,dispatch,logout,addToCart)}>
+          <div className="icon" title="Add to Cart" onClick={()=>addtocart(user,product.productId,productColor.colorId,productSize.sizeId,amount,dispatch,logout,addNotification,addToCart)}>
             <i className="fas fa-cart-plus"></i> Add to Cart
           </div>
           <div className="icon" title="Return this product">

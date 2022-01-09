@@ -11,9 +11,25 @@ export async function register(formData, config) {
   return response.data;
 }
 
-export async function editUser(formData, config) {
-  const response = await axios.post(`${API}/user/edit`, formData, config);
-  return response.data;
+export async function editUser(user, values, dispatch, logout, router) {
+  const config = {
+    headers: { Authorization: `Bearer ${user.token}` },
+  };
+  const formData = new FormData();
+  formData.append("UserId", user.id);
+  formData.append("UserName", values.userName);
+  formData.append("Email", values.email);
+  formData.append("Password", values.password);
+  try {
+    const response = await axios.post(`${API}/user/edit`, formData, config);
+    return true;
+  } catch (error) {
+    if (error.response.status == 401) {
+      dispatch(logout());
+      router.push("/");
+    }
+    return false;
+  }
 }
 
 export async function getUserById(userId, config) {

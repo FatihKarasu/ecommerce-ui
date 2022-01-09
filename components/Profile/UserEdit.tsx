@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { getUser, logout } from "../../redux/userReducer";
 import { useRouter } from "next/router";
 import { editUser,getUserById } from "../../data/user";
-
+import { addNotification } from "../../redux/notificationReducer";
 const initialState = {
   userName: "",
   email: "",
@@ -50,23 +50,13 @@ export default function UserEdit() {
       setMessage("Please Enter Same Password.");
       return;
     }
-    const config = {
-      headers: { Authorization: `Bearer ${user.token}` },
-    };
-    const formData = new FormData();
-    formData.append("UserId", user.id);
-    formData.append("UserName", editValues.userName);
-    formData.append("Email", editValues.email);
-    formData.append("Password", editValues.password);
-    try {
-      const response = await editUser(formData, config);
-      setMessage(response.message);
-      setVariant(response.status);
-    } catch (error) {
-      if (error.response.status == 401) {
-        dispatch(logout());
-        router.push("/");
-      }
+    if(await editUser(user,editValues,dispatch,logout,router))
+    {
+      dispatch(addNotification({notification:"Updated Successfully",variant:"success",lifeSpan:3000}))
+    }
+    else 
+    {
+      dispatch(addNotification({notification:"Update Failed. Please Try Again",variant:"danger",lifeSpan:3000}))
     }
   };
 

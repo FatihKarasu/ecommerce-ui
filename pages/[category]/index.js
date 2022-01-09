@@ -23,45 +23,29 @@ const initialItems = [
 ];
 const prices = [
   {
-    title: "0 TL - 50 TL",
+    title: "0 TL - 99 TL",
     min: 0,
-    max: 50,
+    max: 99,
   },
+
   {
-    title: "50 TL - 100 TL",
-    min: 50,
-    max: 100,
-  },
-  {
-    title: "100 TL - 150 TL",
+    title: "100 TL - 199 TL",
     min: 100,
-    max: 150,
+    max: 199,
   },
+
   {
-    title: "150 TL - 200 TL",
-    min: 150,
-    max: 200,
-  },
-  {
-    title: "200 TL - 250 TL",
+    title: "200 TL - 299 TL",
     min: 200,
-    max: 250,
+    max: 299,
   },
+
   {
-    title: "250 TL - 300 TL",
-    min: 250,
-    max: 300,
-  },
-  {
-    title: "300 TL - 350 TL",
+    title: "300 TL - 399 TL",
     min: 300,
-    max: 350,
+    max: 399,
   },
-  {
-    title: "350 TL - 400 TL",
-    min: 350,
-    max: 400,
-  },
+
   {
     title: "400 TL and above",
     min: 400,
@@ -91,7 +75,7 @@ export default function index({
   const [filters, setFilters] = useState(_filters);
   const [filterValues, setFilterValues] = useState({ ..._filterValues });
   const [loading, setloading] = useState(false);
-
+  const [show, setShow] = useState(false);
   useEffect(() => {
     if (fetched.length !== 0) {
       setProducts([...fetched]);
@@ -208,7 +192,7 @@ export default function index({
     }
     return query;
   };
-  
+
   const getUrl = () => {
     let URL = "";
     let colorQuery = "";
@@ -261,11 +245,10 @@ export default function index({
     }
     if (orderBy !== "newest") {
       if (URL.includes("?")) {
-        URL+= `&orderBy=${orderBy}`;
-      } else{
-        URL+= `?orderBy=${orderBy}`;
+        URL += `&orderBy=${orderBy}`;
+      } else {
+        URL += `?orderBy=${orderBy}`;
       }
-     
     }
     if (filterValues.min !== null && filterValues.max !== null) {
       if (URL.includes("?")) {
@@ -273,9 +256,8 @@ export default function index({
       } else {
         URL += `?min=${filterValues.min}&max=${filterValues.max}`;
       }
-      
     }
-   
+
     return URL;
   };
 
@@ -351,144 +333,161 @@ export default function index({
           </nav>
         </div>
         <div className="d-flex">
-          <div className="filter-container">
-            {_categories !== null ? (
-              <div className="filter">
-                <h5>Categories</h5>
-                <div className="prices">
-                  {_categories.map((category) => (
-                    <div
-                      className={
-                        filterValues.categoryId == category.categoryId
-                          ? "item selected"
-                          : "item "
-                      }
-                      key={category.categoryId}
-                      onClick={() =>
-                        handleSelect("category", category.categoryId)
-                      }
-                    >
-                      {category.categoryName}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : null}
-            <div className="filter">
-              <h5>Colors</h5>
-              <div className="colors">
-                {filters.colors.map((color) => (
-                  <Filter
-                    key={color.colorId}
-                    isChecked={filterValues.colors.includes(color.colorId)}
-                    color={color}
-                    handleSelect={handleSelect}
-                  />
-                ))}
-              </div>
-            </div>
-            <div className="filter">
-              <h5>Sizes</h5>
-              <div className="colors">
-                {filters.sizes.map((size) => (
-                  <div
-                    className={
-                      filterValues.sizes.includes(size.sizeId)
-                        ? "item selected"
-                        : "item "
-                    }
-                    key={size.sizeId}
-                    onClick={() => handleSelect("size", size.sizeId)}
-                  >
-                    {size.sizeName.toUpperCase()}
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="filter">
-              <h5>Price</h5>
-              <div className="prices">
-                {prices.map((price) => (
-                  <div
-                    className={
-                      filterValues.min == price.min ? "item selected" : "item "
-                    }
-                    key={price.min}
-                    onClick={() => handleSelect(price.min, price.max)}
-                  >
-                    {price.title}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
           <div className="w-100">
             <div className="products-header">
-              <div className="selected-filters">
-                {filterValues.sizes.map((id) => (
-                  <SelectedFilter
-                    key={`size${id}`}
-                    type="size"
-                    id={id}
-                    getValues={getFilterValues}
-                    handleSelect={handleSelect}
-                  />
-                ))}
-                {filterValues.colors.map((id) => (
-                  <SelectedFilter
-                    key={`color${id}`}
-                    type="color"
-                    id={id}
-                    getValues={getFilterValues}
-                    handleSelect={handleSelect}
-                  />
-                ))}
-              </div>
-              <div>
-                <DropdownButton id="dropdown-basic-button" title={selected}>
-                  {dropdownItems.map((item) => (
-                    <div
-                      key={item.id}
-                      className={
-                        item.selected
-                          ? "dropdown-button selected"
-                          : "dropdown-button"
-                      }
-                      onClick={() => setOrderBy(item.id)}
-                    >
-                      {item.title}
-                    </div>
+              <i
+                className="fas fa-filter filter-button"
+                onClick={() => setShow(!show)}
+                title="Filters"
+              />
+              <div className="d-flex justify-content-between w-100">
+                <div className="selected-filters">
+                  {filterValues.sizes.map((id) => (
+                    <SelectedFilter
+                      key={`size${id}`}
+                      type="size"
+                      id={id}
+                      getValues={getFilterValues}
+                      handleSelect={handleSelect}
+                    />
                   ))}
-                </DropdownButton>
+                  {filterValues.colors.map((id) => (
+                    <SelectedFilter
+                      key={`color${id}`}
+                      type="color"
+                      id={id}
+                      getValues={getFilterValues}
+                      handleSelect={handleSelect}
+                    />
+                  ))}
+                </div>
+                <div>
+                  <DropdownButton id="dropdown-basic-button" title={selected}>
+                    {dropdownItems.map((item) => (
+                      <div
+                        key={item.id}
+                        className={
+                          item.selected
+                            ? "dropdown-button selected"
+                            : "dropdown-button"
+                        }
+                        onClick={() => setOrderBy(item.id)}
+                      >
+                        {item.title}
+                      </div>
+                    ))}
+                  </DropdownButton>
+                </div>
               </div>
             </div>
-            <div className="products-container">
-              {!loading
-                ? products.map((p) => (
-                    <Link
-                      href={
-                        "/" +
-                        p.product.subCategoryId +
-                        "/" +
-                        p.product.productId
-                      }
-                      key={p.product.productId}
-                    >
-                      <a>
-                        <ProductCard
-                          product={p.product}
-                          colors={p.colors}
-                          sizes={p.sizes}
-                        />
-                      </a>
-                    </Link>
-                  ))
-                : skeletonContainer}
-            </div>
-            <div className="d-flex justify-content-center">
-              <Button type="button" onClick={() => loadMore()}>
-                Load More
-              </Button>
+            <div className="wrapper">
+              <div
+                className={`${
+                  show ? "filter-container show" : "filter-container"
+                }`}
+              >
+                {_categories !== null ? (
+                  <div className="filter">
+                    <h5>Categories</h5>
+                    <div className="prices">
+                      {_categories.map((category) => (
+                        <div
+                          className={
+                            filterValues.categoryId == category.categoryId
+                              ? "item selected"
+                              : "item "
+                          }
+                          key={category.categoryId}
+                          onClick={() =>
+                            handleSelect("category", category.categoryId)
+                          }
+                        >
+                          {category.categoryName}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+                <div className="filter">
+                  <h5>Colors</h5>
+                  <div className="colors">
+                    {filters.colors.map((color) => (
+                      <Filter
+                        key={color.colorId}
+                        isChecked={filterValues.colors.includes(color.colorId)}
+                        color={color}
+                        handleSelect={handleSelect}
+                      />
+                    ))}
+                  </div>
+                </div>
+                <div className="filter">
+                  <h5>Sizes</h5>
+                  <div className="colors">
+                    {filters.sizes.map((size) => (
+                      <div
+                        className={
+                          filterValues.sizes.includes(size.sizeId)
+                            ? "item selected"
+                            : "item "
+                        }
+                        key={size.sizeId}
+                        onClick={() => handleSelect("size", size.sizeId)}
+                      >
+                        {size.sizeName.toUpperCase()}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="filter">
+                  <h5>Price</h5>
+                  <div className="prices">
+                    {prices.map((price) => (
+                      <div
+                        className={
+                          filterValues.min == price.min
+                            ? "item selected"
+                            : "item "
+                        }
+                        key={price.min}
+                        onClick={() => handleSelect(price.min, price.max)}
+                      >
+                        {price.title}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+              <div className="w-100">
+                <div className="products-container">
+                  {!loading
+                    ? products.map((p) => (
+                        <Link
+                          href={
+                            "/" +
+                            p.product.subCategoryId +
+                            "/" +
+                            p.product.productId
+                          }
+                          key={p.product.productId}
+                        >
+                          <a>
+                            <ProductCard
+                              product={p.product}
+                              colors={p.colors}
+                              sizes={p.sizes}
+                            />
+                          </a>
+                        </Link>
+                      ))
+                    : skeletonContainer}
+                </div>
+                <div className="d-flex justify-content-center">
+                  <Button type="button" onClick={() => loadMore()}>
+                    Load More
+                  </Button>
+                </div>
+              </div>
             </div>
           </div>
         </div>

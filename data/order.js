@@ -28,10 +28,12 @@ export async function addOrder(
     const response = await axios.post(`${API}/order`, formData, config);
     dispatch(clearCart());
     router.push("/");
+    return true 
   } catch (error) {
     if (error.response.status == 401) {
       dispatch(logout());
       router.push("/");
     }
+    return false
   }
 }
